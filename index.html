@@ -435,9 +435,13 @@ function logo(t, cls){
   }
   const dom = t.id in FAV ? FAV[t.id] : host(t.url), letter = '<b>'+esc(t.name[0])+'</b>';
   if (!dom) return '<span class="mark'+c+'" style="--mh:'+hueOf(t.name)+'">'+letter+'</span>';
-  return '<span class="mark fav'+c+'" style="--mh:'+hueOf(t.name)+'">'+letter+'<img src="https://www.google.com/s2/favicons?domain='+dom+'&amp;sz=64" alt="" loading="lazy"></span>';
+  return '<span class="mark fav'+c+'" style="--mh:'+hueOf(t.name)+'">'+letter+'<img src="https://www.google.com/s2/favicons?domain='+dom+'&amp;sz=128" data-dom="'+dom+'" alt="" loading="lazy"></span>';
 }
-document.addEventListener('error', e => { if (e.target.tagName === 'IMG' && e.target.parentNode && e.target.parentNode.classList.contains('fav')) e.target.remove(); }, true);
+// site icon: Google's favicon service first, DuckDuckGo's as backup, letter tile if both fail
+document.addEventListener('error', e => {
+  const img = e.target; if (img.tagName !== 'IMG' || !img.parentNode || !img.parentNode.classList.contains('fav')) return;
+  if (!img.dataset.alt) { img.dataset.alt = 1; img.src = 'https://icons.duckduckgo.com/ip3/'+img.dataset.dom+'.ico'; } else img.remove();
+}, true);
 const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
 // kit state
