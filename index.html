@@ -1,0 +1,509 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>body{margin:0}</style></head><body>
+<title>Gamerkit</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a keyboard-row hero, then a single column of category shelves; your kit lives in a tray at the bottom edge. */
+:root{
+  --h: 262;                                   /* RGB lighting hue, changed by the keycaps */
+  --bg:#EDEFF3; --surface:#FFFFFF; --sunk:#E3E6EC;
+  --ink:#12141A; --muted:#5B6271; --line:#D5D9E1;
+  --accent:hsl(var(--h) 78% 46%); --accent-ink:#FFFFFF;
+  --glow:hsl(var(--h) 90% 60% / .35);
+  --cap-top:#FFFFFF; --cap-side:#C9CED8;
+  --f-display:"Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Geist", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --f-mono:"Geist Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --r:14px; --r-sm:9px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0D0F13; --surface:#161920; --sunk:#1D2129;
+  --ink:#E8EAEF; --muted:#8D94A3; --line:#272C36;
+  --accent:hsl(var(--h) 90% 66%); --accent-ink:#0D0F13;
+  --glow:hsl(var(--h) 95% 60% / .45);
+  --cap-top:#232731; --cap-side:#0A0B0E; color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0D0F13; --surface:#161920; --sunk:#1D2129;
+  --ink:#E8EAEF; --muted:#8D94A3; --line:#272C36;
+  --accent:hsl(var(--h) 90% 66%); --accent-ink:#0D0F13;
+  --glow:hsl(var(--h) 95% 60% / .45);
+  --cap-top:#232731; --cap-side:#0A0B0E; color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth;scroll-padding-top:84px}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55;
+  background-image:radial-gradient(var(--line) 1px, transparent 1px);background-size:22px 22px;background-attachment:fixed}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.mono{font-family:var(--f-mono)}
+.skip{position:absolute;left:-999px}.skip:focus{left:16px;top:16px;z-index:99;background:var(--surface);padding:8px 12px}
+
+/* nav */
+header.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.nav .wrap{display:flex;align-items:center;gap:20px;padding-block:12px}
+.brand{font-family:var(--f-display);font-weight:800;font-size:19px;letter-spacing:-.02em;text-decoration:none;display:flex;align-items:center;gap:8px}
+.brand i{width:12px;height:12px;border-radius:3px;background:var(--accent);box-shadow:0 0 12px var(--glow);transition:background .4s}
+.cats{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;flex:1;min-width:0;mask-image:linear-gradient(90deg,#000 92%,transparent)}
+.cats::-webkit-scrollbar{display:none}
+.cats a{text-decoration:none;font-size:13px;color:var(--muted);padding:6px 10px;border-radius:999px;white-space:nowrap;display:inline-flex;gap:6px;align-items:center}
+.cats a:hover{color:var(--ink);background:var(--sunk)}
+.roll{display:inline-block;height:1.4em;overflow:hidden;line-height:1.4em;vertical-align:bottom}
+.roll span{display:block;transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+.roll span+span{color:var(--accent)}
+.cats a:hover .roll span{transform:translateY(-100%)}
+.cats sup{font-family:var(--f-mono);font-size:10px;color:var(--muted);top:0}
+.theme{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;width:34px;height:34px;cursor:pointer;flex:none;display:grid;place-items:center}
+
+/* hero */
+.hero{padding-block:64px 36px;display:grid;gap:22px}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.keys{display:flex;flex-wrap:wrap;gap:clamp(4px,1vw,10px);user-select:none}
+.key{--kh:var(--h);appearance:none;border:0;cursor:pointer;padding:0;background:none;color:var(--ink)}
+.key b{display:grid;place-items:center;width:clamp(32px,calc((100vw - 96px) / 8),104px);aspect-ratio:1;max-width:100%;
+  font-family:var(--f-display);font-weight:800;font-size:clamp(20px,calc((100vw - 96px) / 13),66px);letter-spacing:-.03em;
+  background:var(--cap-top);border:1px solid var(--line);border-radius:clamp(9px,1.4vw,16px);
+  box-shadow:0 clamp(4px,.7vw,8px) 0 var(--cap-side),0 clamp(6px,1vw,12px) 18px rgb(0 0 0 / .12);
+  transform:translateY(0);transition:transform .12s, box-shadow .12s, color .25s, text-shadow .25s}
+.key:hover b,.key.lit b{color:hsl(var(--kh) 85% 55%);text-shadow:0 0 18px hsl(var(--kh) 95% 60% / .7);
+  box-shadow:0 clamp(4px,.7vw,8px) 0 var(--cap-side),0 0 0 1px hsl(var(--kh) 90% 60% / .5),0 10px 34px hsl(var(--kh) 95% 60% / .45)}
+.key:active b,.key.down b{transform:translateY(clamp(3px,.6vw,7px));box-shadow:0 1px 0 var(--cap-side),0 0 26px hsl(var(--kh) 95% 60% / .6)}
+.key.gap{width:clamp(4px,2vw,24px)}
+.hint{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.hint kbd{font-family:inherit;border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 5px;background:var(--surface)}
+.lede{font-size:clamp(17px,2vw,20px);max-width:58ch;text-wrap:pretty;margin:0}
+.lede strong{font-weight:600}
+.meta{display:flex;flex-wrap:wrap;gap:8px 22px;font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.meta b{color:var(--ink);font-weight:500}
+
+/* presets + tools bar */
+.bar{display:grid;gap:14px;padding:18px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);margin-bottom:40px}
+.bar h2{font-family:var(--f-display);font-size:18px;margin:0;font-weight:700;letter-spacing:-.01em}
+.bar p{margin:0;color:var(--muted);font-size:13.5px}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+.preset{font:inherit;font-size:13.5px;cursor:pointer;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:7px 14px;display:inline-flex;gap:8px;align-items:center;transition:border-color .2s,transform .15s}
+.preset:hover{border-color:var(--accent);transform:translateY(-1px)}
+.preset small{font-family:var(--f-mono);color:var(--muted);font-size:11px}
+.filters{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.search{flex:1 1 260px;min-width:0;position:relative}
+.search input{width:100%;font:inherit;padding:10px 40px 10px 14px;border-radius:var(--r-sm);border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+.search input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--glow)}
+.search kbd{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-family:var(--f-mono);font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:0 6px}
+.toggle{display:inline-flex;gap:7px;align-items:center;font-size:13.5px;color:var(--muted);cursor:pointer;user-select:none}
+.toggle input{accent-color:var(--accent);width:16px;height:16px}
+
+/* shelves */
+.shelf{margin-bottom:48px}
+.shelf-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.shelf-head h2{font-family:var(--f-display);font-weight:700;font-size:clamp(24px,3vw,32px);letter-spacing:-.02em;margin:0;text-wrap:balance}
+.shelf-head .n{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.shelf > p{margin:-8px 0 16px;color:var(--muted);max-width:65ch}
+.shelf-head .addall{margin-left:auto;font:inherit;font-size:12.5px;background:none;border:0;color:var(--accent);cursor:pointer;padding:4px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
+.card{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:grid;grid-template-rows:auto 1fr auto;gap:12px;overflow:hidden;
+  transition:transform .2s cubic-bezier(.2,.8,.2,1),border-color .2s,box-shadow .2s;isolation:isolate}
+.card::before{content:"";position:absolute;inset:0;z-index:-1;opacity:0;transition:opacity .25s;
+  background:radial-gradient(260px circle at var(--mx,50%) var(--my,50%),hsl(var(--h) 95% 60% / .14),transparent 65%)}
+.card:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}
+.card:hover::before{opacity:1}
+.card.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 8px 28px var(--glow)}
+.top{display:flex;gap:12px;align-items:center;min-width:0}
+.mark{flex:none;width:40px;height:40px;border-radius:11px;display:grid;place-items:center;font-family:var(--f-display);font-weight:800;font-size:17px;
+  background:hsl(var(--mh) 70% 50% / .14);color:hsl(var(--mh) 65% 42%);border:1px solid hsl(var(--mh) 70% 50% / .25)}
+:root[data-theme="dark"] .mark{color:hsl(var(--mh) 85% 70%)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .mark{color:hsl(var(--mh) 85% 70%)}}
+.top div{min-width:0}
+.top h3{margin:0;font-size:15.5px;font-weight:600;line-height:1.25}
+.top .src{font-family:var(--f-mono);font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.desc{margin:0;color:var(--muted);font-size:13.5px;line-height:1.5}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+.tag{font-family:var(--f-mono);font-size:10.5px;padding:2px 7px;border-radius:5px;background:var(--sunk);color:var(--muted);letter-spacing:.02em}
+.tag.w{color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.actions{display:flex;gap:8px;align-items:center}
+.dl{flex:1;display:inline-flex;justify-content:center;align-items:center;gap:8px;text-decoration:none;font-weight:600;font-size:13.5px;padding:9px 12px;border-radius:var(--r-sm);
+  background:var(--ink);color:var(--bg);transition:background .2s,color .2s,transform .12s}
+.dl:hover{background:var(--accent);color:var(--accent-ink)}
+.dl:active{transform:translateY(1px)}
+.dl svg{width:15px;height:15px}
+.add{flex:none;width:38px;height:38px;border-radius:var(--r-sm);border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer;display:grid;place-items:center;transition:all .2s}
+.add svg{width:16px;height:16px;transition:transform .25s cubic-bezier(.2,.8,.2,1)}
+.add:hover{border-color:var(--accent)}
+.card.on .add{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.card.on .add svg{transform:rotate(45deg)}
+.empty{padding:40px 0;color:var(--muted);text-align:center}
+
+/* how */
+.how{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-bottom:56px}
+.how div{border-top:2px solid var(--ink);padding-top:12px}
+.how b{font-family:var(--f-mono);font-size:12px;color:var(--accent)}
+.how h3{font-family:var(--f-display);margin:4px 0 6px;font-size:19px;letter-spacing:-.01em}
+.how p{margin:0;color:var(--muted);font-size:14px}
+footer{border-top:1px solid var(--line);padding-block:28px 120px;color:var(--muted);font-size:13px}
+footer p{max-width:70ch;margin:0 0 8px}
+
+/* tray */
+.tray{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translate(-50%,0);z-index:25;
+  display:flex;align-items:center;gap:14px;background:var(--ink);color:var(--bg);border-radius:999px;padding:8px 8px 8px 20px;
+  box-shadow:0 12px 40px rgb(0 0 0 / .25),0 0 0 1px var(--glow);max-width:calc(100vw - 32px);transition:transform .35s cubic-bezier(.2,.8,.2,1),opacity .3s}
+.tray.hide{transform:translate(-50%,160%);opacity:0}
+.tray .count{font-family:var(--f-mono);font-size:13px;white-space:nowrap}
+.tray .count b{color:var(--accent);font-weight:500}
+.tray button{font:inherit;font-weight:600;font-size:13.5px;border:0;border-radius:999px;padding:9px 16px;background:var(--accent);color:var(--accent-ink);cursor:pointer;white-space:nowrap}
+.bump{animation:bump .35s}
+@keyframes bump{40%{transform:translate(-50%,-6px)}}
+
+/* drawer */
+.scrim{position:fixed;inset:0;background:rgb(0 0 0 / .4);z-index:40}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(520px,100vw);z-index:41;background:var(--surface);border-left:1px solid var(--line);
+  display:grid;grid-template-rows:auto 1fr auto;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);padding-right:env(safe-area-inset-right,0px);
+  animation:slide .3s cubic-bezier(.2,.8,.2,1)}
+@keyframes slide{from{transform:translateX(40px);opacity:0}}
+.drawer header,.drawer .foot{padding:18px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px}
+.drawer .foot{border-bottom:0;border-top:1px solid var(--line);flex-wrap:wrap}
+.drawer h2{font-family:var(--f-display);margin:0;font-size:22px;flex:1}
+.x{border:1px solid var(--line);background:var(--bg);color:var(--ink);width:34px;height:34px;border-radius:999px;cursor:pointer;font-size:16px}
+.body{overflow-y:auto;padding:20px;display:grid;grid-template-columns:minmax(0,1fr);gap:22px;align-content:start}
+.body h3{margin:0 0 6px;font-size:13px;font-family:var(--f-mono);text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:500}
+.body p{margin:0 0 10px;font-size:13.5px;color:var(--muted)}
+pre.cmd{margin:0;background:var(--sunk);border:1px solid var(--line);border-radius:var(--r-sm);padding:12px;font-family:var(--f-mono);font-size:11.5px;line-height:1.6;overflow-x:auto;max-height:220px;white-space:pre}
+.copy{font:inherit;font-weight:600;font-size:13px;border:0;border-radius:var(--r-sm);padding:9px 14px;background:var(--ink);color:var(--bg);cursor:pointer;margin-top:10px}
+.copy.ok{background:var(--accent);color:var(--accent-ink)}
+.klist{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.klist li{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r-sm);min-width:0}
+.klist .nm{flex:1;min-width:0;font-size:14px}
+.klist .nm small{display:block;font-family:var(--f-mono);font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.klist a{font-size:12.5px;font-weight:600;text-decoration:none;color:var(--accent);white-space:nowrap}
+.klist button{border:0;background:none;color:var(--muted);cursor:pointer;font-size:15px;padding:2px 4px}
+.ghost{font:inherit;font-size:13px;background:none;border:1px solid var(--line);color:var(--ink);border-radius:var(--r-sm);padding:8px 12px;cursor:pointer}
+
+@media (max-width:560px){
+  .hero{padding-block:36px 24px}
+  .tray{padding-left:16px;gap:10px}
+}
+@media (prefers-reduced-motion:reduce){*,*::before{transition:none!important;animation:none!important}html{scroll-behavior:auto}}
+</style>
+
+<a class="skip" href="#main">Skip to the tools</a>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="#top"><i></i>gamerkit</a>
+    <nav class="cats" id="cats" aria-label="Categories"></nav>
+    <button class="theme" id="theme" aria-label="Switch light or dark theme"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 2a6 6 0 0 1 0 12z" fill="currentColor"/></svg></button>
+  </div>
+</header>
+
+<main id="top">
+  <section class="wrap hero">
+    <span class="eyebrow">New PC setup · Windows 10 / 11</span>
+    <div class="keys" id="keys" aria-label="Gamerkit"></div>
+    <span class="hint">Press a key, or type <kbd>G</kbd><kbd>A</kbd><kbd>M</kbd><kbd>E</kbd>… on your keyboard, to change the lighting.</span>
+    <p class="lede">Every app a fresh gaming PC needs, in one place. <strong>Pick your launchers, drivers and tools</strong>, then download each from its official site or install the whole kit with one command.</p>
+    <div class="meta" id="meta"></div>
+  </section>
+
+  <section class="wrap" id="main">
+    <div class="bar">
+      <div>
+        <h2>Start from a build</h2>
+        <p>Each preset adds a ready-made set of tools to your kit. You can add or remove anything after.</p>
+      </div>
+      <div class="presets" id="presets"></div>
+      <div class="filters">
+        <label class="search"><span class="skip">Search tools</span><input id="q" type="search" placeholder="Search Steam, drivers, RGB, benchmark…" autocomplete="off"><kbd>/</kbd></label>
+        <label class="toggle"><input type="checkbox" id="free"> Free only</label>
+        <label class="toggle"><input type="checkbox" id="wg"> Installs with winget</label>
+      </div>
+    </div>
+
+    <div id="shelves"></div>
+
+    <div class="how" aria-label="How it works">
+      <div><b>step 1</b><h3>Build your kit</h3><p>Tap + on any tool or start from a preset. Your kit is saved in this browser.</p></div>
+      <div><b>step 2</b><h3>Install in one go</h3><p>Open your kit and copy the winget command into PowerShell. It installs every supported app silently, one after another.</p></div>
+      <div><b>step 3</b><h3>Grab the rest</h3><p>Drivers and vendor apps without a winget package get a direct button to the official download page.</p></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Gamerkit hosts no files. Every Download button opens the developer's own site, and the winget command pulls packages from Microsoft's community repository.</p>
+    <p>Product names belong to their owners. Check a tool's licence before you install it.</p>
+  </div>
+</footer>
+
+<div class="tray hide" id="tray" role="region" aria-label="Your kit">
+  <span class="count" id="tcount"></span>
+  <button id="open">Review &amp; install</button>
+</div>
+
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="drawer" hidden aria-labelledby="dtitle" role="dialog" aria-modal="true">
+  <header><h2 id="dtitle">Your kit</h2><button class="x" id="close" aria-label="Close your kit">✕</button></header>
+  <div class="body">
+    <section>
+      <h3>One-command install</h3>
+      <p id="wgnote"></p>
+      <pre class="cmd" id="cmd"></pre>
+      <button class="copy" id="copy">Copy command</button>
+    </section>
+    <section>
+      <h3>Download from official sites</h3>
+      <p>For tools without a winget package, or if you prefer to install by hand.</p>
+      <ul class="klist" id="klist"></ul>
+    </section>
+  </div>
+  <div class="foot"><button class="ghost" id="clear">Empty kit</button><span class="hint">Open PowerShell or Terminal, paste, press Enter.</span></div>
+</aside>
+
+<script>
+(() => {
+const DL='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v8M4.5 6.8 8 10.3l3.5-3.5M2.5 13.5h11"/></svg>';
+const PLUS='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>';
+
+// [id, name, vendor, official url, description, winget id or "", free?]
+const CATS = [
+ {id:'launchers', name:'Game launchers', blurb:'Where your library lives. Most people end up needing three or four of these.', tools:[
+  ['steam','Steam','Valve','https://store.steampowered.com/about/','The biggest PC store, plus Steam Input for controllers and Remote Play.','Valve.Steam',1],
+  ['epic','Epic Games Launcher','Epic Games','https://store.epicgames.com/download','Fortnite, Unreal Engine titles and the weekly free games.','EpicGames.EpicGamesLauncher',1],
+  ['xbox','Xbox app','Microsoft','https://www.xbox.com/apps/xbox-app-for-pc','PC Game Pass library, Xbox cloud gaming and party chat.','',1],
+  ['ea','EA app','Electronic Arts','https://www.ea.com/ea-app','Battlefield, EA SPORTS FC, Apex Legends and EA Play.','ElectronicArts.EADesktop',1],
+  ['ubi','Ubisoft Connect','Ubisoft','https://ubisoftconnect.com/','Assassin’s Creed, Rainbow Six Siege and Ubisoft+.','Ubisoft.Connect',1],
+  ['bnet','Battle.net','Blizzard','https://download.battle.net/','Call of Duty, Overwatch 2, Diablo IV and World of Warcraft.','Blizzard.BattleNet',1],
+  ['riot','Riot Client','Riot Games','https://playvalorant.com/download/','Installs Valorant, League of Legends and Vanguard anti-cheat.','',1],
+  ['gog','GOG Galaxy','CD PROJEKT','https://www.gog.com/galaxy','DRM-free GOG games, and links your other launchers into one library.','GOG.Galaxy',1],
+  ['rockstar','Rockstar Games Launcher','Rockstar Games','https://socialclub.rockstargames.com/rockstar-games-launcher','Needed for GTA V, Red Dead Redemption 2 and other Rockstar titles.','',1],
+  ['amazon','Amazon Games','Amazon','https://gaming.amazon.com/home','Claim and play the free games included with Prime Gaming.','Amazon.Games',1],
+  ['itch','itch.io app','itch.io','https://itch.io/app','Indie games and game-jam builds, with automatic updates.','ItchIo.Itch',1],
+  ['playnite','Playnite','Playnite','https://playnite.link/','Open-source front end that merges every launcher into one library.','Playnite.Playnite',1],
+  ['heroic','Heroic Games Launcher','Heroic','https://heroicgameslauncher.com/','Lightweight open-source client for Epic, GOG and Amazon games.','HeroicGamesLauncher.HeroicGamesLauncher',1],
+  ['minecraft','Minecraft Launcher','Mojang','https://www.minecraft.net/download','Official launcher for Minecraft Java and Bedrock editions.','Mojang.MinecraftLauncher',1],
+ ]},
+ {id:'drivers', name:'GPU & chipset drivers', blurb:'Install the driver for your graphics card first. Use DDU when switching between brands.', tools:[
+  ['nvapp','NVIDIA App','NVIDIA','https://www.nvidia.com/software/nvidia-app/','GeForce Game Ready drivers, ShadowPlay recording and game optimisation.','',1],
+  ['nvdrv','NVIDIA Drivers (manual)','NVIDIA','https://www.nvidia.com/drivers/','Pick your exact GeForce card and get the standalone driver package.','',1],
+  ['amd','AMD Software: Adrenalin','AMD','https://www.amd.com/en/support/download/drivers.html','Radeon drivers with FSR, Anti-Lag, recording and tuning built in.','',1],
+  ['amdchip','AMD Ryzen Chipset Drivers','AMD','https://www.amd.com/en/support/download/drivers.html','Power plans and core scheduling for Ryzen CPUs. Select your motherboard chipset.','',1],
+  ['intel','Intel Driver & Support Assistant','Intel','https://www.intel.com/content/www/us/en/support/detect.html','Finds the right Arc / Iris graphics, Wi-Fi and chipset drivers.','Intel.IntelDriverAndSupportAssistant',1],
+  ['ddu','Display Driver Uninstaller','Wagnardsoft','https://www.wagnardsoft.com/display-driver-uninstaller-ddu','Removes every trace of an old GPU driver before a clean install.','Wagnardsoft.DisplayDriverUninstaller',1],
+ ]},
+ {id:'runtimes', name:'Runtimes & libraries', blurb:'Games quietly depend on these. Installing them up front avoids missing-DLL errors.', tools:[
+  ['vcredist','Visual C++ Redistributable','Microsoft','https://learn.microsoft.com/cpp/windows/latest-supported-vc-redist','The fix for most “MSVCP140.dll was not found” errors. Get the x64 build.','Microsoft.VCRedist.2015+.x64',1],
+  ['directx','DirectX End-User Runtime','Microsoft','https://www.microsoft.com/download/details.aspx?id=35','Legacy DirectX 9–11 files that older games still look for.','Microsoft.DirectX',1],
+  ['dotnet','.NET Desktop Runtime 8','Microsoft','https://dotnet.microsoft.com/download/dotnet/8.0','Needed by many launchers, mod managers and overlay tools.','Microsoft.DotNet.DesktopRuntime.8',1],
+  ['java','Java (Temurin 21)','Eclipse Adoptium','https://adoptium.net/','Java runtime for modded Minecraft and third-party launchers.','EclipseAdoptium.Temurin.21.JRE',1],
+ ]},
+ {id:'chat', name:'Voice & chat', blurb:'Talk to your squad while you play.', tools:[
+  ['discord','Discord','Discord','https://discord.com/download','Voice channels, screen share and communities for almost every game.','Discord.Discord',1],
+  ['ts','TeamSpeak','TeamSpeak Systems','https://teamspeak.com/downloads/','Low-latency voice comms favoured by clans and sim pilots.','TeamSpeakSystems.TeamSpeakClient',1],
+  ['mumble','Mumble','Mumble','https://www.mumble.info/downloads/','Open-source voice chat with positional audio.','Mumble.Mumble.Client',1],
+ ]},
+ {id:'perf', name:'Tuning & monitoring', blurb:'See your temperatures and frame times, and tune your hardware safely.', tools:[
+  ['afterburner','MSI Afterburner','MSI','https://www.msi.com/Landing/afterburner/graphics-cards','GPU overclocking, undervolting, fan curves and the classic in-game overlay.','Guru3D.Afterburner',1],
+  ['rtss','RivaTuner Statistics Server','Guru3D','https://www.guru3d.com/download/rtss-rivatuner-statistics-server-download/','Frame-rate limiter and the on-screen display that Afterburner uses.','Guru3D.RTSS',1],
+  ['hwinfo','HWiNFO','REALiX','https://www.hwinfo.com/download/','Every sensor in your PC: temps, clocks, voltages and power draw.','REALiX.HWiNFO',1],
+  ['cpuz','CPU-Z','CPUID','https://www.cpuid.com/softwares/cpu-z.html','Confirms your CPU, motherboard and RAM speed (check XMP/EXPO is on).','CPUID.CPU-Z',1],
+  ['gpuz','GPU-Z','TechPowerUp','https://www.techpowerup.com/gpuz/','Graphics card details, PCIe link speed and live sensor readings.','TechPowerUp.GPU-Z',1],
+  ['hwmon','HWMonitor','CPUID','https://www.cpuid.com/softwares/hwmonitor.html','Simple temperature, voltage and fan-speed monitor.','CPUID.HWMonitor',1],
+  ['fancontrol','Fan Control','Rem0o','https://getfancontrol.com/','Custom fan curves tied to any sensor, without vendor bloatware.','Rem0o.FanControl',1],
+  ['lasso','Process Lasso','Bitsum','https://bitsum.com/','Keeps background apps from stealing CPU time while you play.','BitSum.ProcessLasso',1],
+  ['latmon','LatencyMon','Resplendence','https://www.resplendence.com/latencymon','Tracks down the driver behind audio crackle and stutter.','',1],
+ ]},
+ {id:'bench', name:'Benchmarks & stress tests', blurb:'Check that a new build is stable and performing the way it should.', tools:[
+  ['cinebench','Cinebench','Maxon','https://www.maxon.net/cinebench','The standard CPU rendering benchmark, single and multi-core.','',1],
+  ['3dmark','3DMark','UL Solutions','https://benchmarks.ul.com/3dmark','Time Spy, Steel Nomad and Port Royal GPU scores to compare online.','',0],
+  ['occt','OCCT','OCBASE','https://www.ocbase.com/','Stability tests for CPU, GPU, RAM and power supply, with error detection.','',1],
+  ['furmark','FurMark','Geeks3D','https://geeks3d.com/furmark/','Heavy GPU stress test for checking temperatures and stability.','',1],
+  ['cdm','CrystalDiskMark','Crystal Dew World','https://crystalmark.info/en/software/crystaldiskmark/','Measures your SSD read and write speeds.','CrystalDewWorld.CrystalDiskMark',1],
+  ['cdi','CrystalDiskInfo','Crystal Dew World','https://crystalmark.info/en/software/crystaldiskinfo/','Drive health and temperature from S.M.A.R.T. data.','CrystalDewWorld.CrystalDiskInfo',1],
+ ]},
+ {id:'capture', name:'Streaming & capture', blurb:'Record clips, go live and clean up your mic.', tools:[
+  ['obs','OBS Studio','OBS Project','https://obsproject.com/download','Free, open-source recording and streaming used by most streamers.','OBSProject.OBSStudio',1],
+  ['streamlabs','Streamlabs Desktop','Streamlabs','https://streamlabs.com/streamlabs-live-streaming-software','OBS-based streaming app with alerts and overlays built in.','',1],
+  ['nvbroadcast','NVIDIA Broadcast','NVIDIA','https://www.nvidia.com/geforce/broadcasting/broadcast-app/','AI noise removal and virtual backgrounds on RTX cards.','',1],
+  ['medal','Medal','Medal','https://medal.tv/','Automatic clip capture and quick sharing.','',1],
+  ['sharex','ShareX','ShareX','https://getsharex.com/','Screenshots, screen recordings and GIFs with instant upload.','ShareX.ShareX',1],
+  ['voicemeeter','Voicemeeter','VB-Audio','https://vb-audio.com/Voicemeeter/','Virtual audio mixer to route game, chat and music separately.','',1],
+  ['parsec','Parsec','Parsec','https://parsec.app/downloads','Low-latency remote play for couch co-op over the internet.','Parsec.Parsec',1],
+  ['moonlight','Moonlight','Moonlight','https://moonlight-stream.org/','Stream games from your PC to a laptop, phone or TV.','MoonlightGameStreamingProject.Moonlight',1],
+  ['sunshine','Sunshine','LizardByte','https://app.lizardbyte.dev/Sunshine/','The open-source host that Moonlight streams from.','LizardByte.Sunshine',1],
+ ]},
+ {id:'peripherals', name:'Peripherals & RGB', blurb:'Only install the one for the brand of mouse, keyboard or headset you own.', tools:[
+  ['ghub','Logitech G HUB','Logitech','https://www.logitechg.com/innovation/g-hub.html','DPI, macros and lighting for Logitech G gear.','Logitech.GHUB',1],
+  ['synapse','Razer Synapse','Razer','https://www.razer.com/synapse-4','Settings and Chroma RGB for Razer devices.','',1],
+  ['icue','Corsair iCUE','Corsair','https://www.corsair.com/s/downloads','Lighting, fans and pumps for Corsair peripherals and components.','',1],
+  ['ssgg','SteelSeries GG','SteelSeries','https://steelseries.com/gg','Sonar audio EQ, device settings and Moments clips.','SteelSeries.GG',1],
+  ['ngenuity','HyperX NGENUITY','HyperX','https://hyperx.com/pages/ngenuity','Lighting and settings for HyperX keyboards, mice and headsets.','',1],
+  ['cam','NZXT CAM','NZXT','https://nzxt.com/software/cam','Monitoring, Kraken cooler control and lighting for NZXT parts.','NZXT.CAM',1],
+  ['signalrgb','SignalRGB','WhirlwindFX','https://signalrgb.com/','One app to sync RGB across brands.','',1],
+  ['openrgb','OpenRGB','OpenRGB','https://openrgb.org/','Open-source RGB control without vendor software.','',1],
+  ['ds4','DS4Windows','Ryochan7','https://ryochan7.github.io/ds4windows-site/','Use PlayStation controllers as Xbox controllers in any game.','',1],
+ ]},
+ {id:'mods', name:'Mods & extras', blurb:'Mod managers and the small apps that make a setup feel like yours.', tools:[
+  ['curseforge','CurseForge','Overwolf','https://www.curseforge.com/download/app','Mods and modpacks for Minecraft, WoW, The Sims 4 and more.','',1],
+  ['vortex','Vortex','Nexus Mods','https://www.nexusmods.com/about/vortex/','Mod manager for Skyrim, Fallout, Cyberpunk 2077 and Baldur’s Gate 3.','NexusMods.Vortex',1],
+  ['prism','Prism Launcher','Prism Launcher','https://prismlauncher.org/download/','Separate Minecraft instances with their own mods and versions.','PrismLauncher.PrismLauncher',1],
+  ['wallpaper','Wallpaper Engine','Wallpaper Engine','https://store.steampowered.com/app/431960/Wallpaper_Engine/','Animated wallpapers from the Steam Workshop.','',0],
+  ['lossless','Lossless Scaling','THS','https://store.steampowered.com/app/993090/Lossless_Scaling/','Frame generation and upscaling for any game, including old ones.','',0],
+  ['rainmeter','Rainmeter','Rainmeter','https://www.rainmeter.net/','Desktop widgets for system stats, clocks and media.','Rainmeter.Rainmeter',1],
+ ]},
+ {id:'utils', name:'Everyday essentials', blurb:'The non-gaming apps every fresh Windows install still needs.', tools:[
+  ['7zip','7-Zip','Igor Pavlov','https://www.7-zip.org/','Opens .zip, .rar and .7z, which most mods ship as.','7zip.7zip',1],
+  ['winrar','WinRAR','RARLAB','https://www.win-rar.com/download.html','Classic archiver with .rar creation.','RARLab.WinRAR',0],
+  ['chrome','Google Chrome','Google','https://www.google.com/chrome/','The most widely used browser.','Google.Chrome',1],
+  ['firefox','Firefox','Mozilla','https://www.mozilla.org/firefox/new/','Fast, privacy-focused open-source browser.','Mozilla.Firefox',1],
+  ['brave','Brave','Brave Software','https://brave.com/download/','Chromium browser with built-in ad blocking.','Brave.Brave',1],
+  ['operagx','Opera GX','Opera','https://www.opera.com/gx','Gaming browser with RAM, CPU and network limiters.','Opera.OperaGX',1],
+  ['spotify','Spotify','Spotify','https://www.spotify.com/download/','Music and podcasts in the background while you play.','Spotify.Spotify',1],
+  ['vlc','VLC media player','VideoLAN','https://www.videolan.org/vlc/','Plays every video format, including your own recordings.','VideoLAN.VLC',1],
+  ['powertoys','PowerToys','Microsoft','https://learn.microsoft.com/windows/powertoys/install','FancyZones window layouts, colour picker and handy Windows tweaks.','Microsoft.PowerToys',1],
+  ['revo','Revo Uninstaller','VS Revo Group','https://www.revouninstaller.com/','Removes programs along with their leftover files.','RevoUninstaller.RevoUninstaller',1],
+  ['mbam','Malwarebytes','Malwarebytes','https://www.malwarebytes.com/mwb-download','Second-opinion malware scan, useful after installing mods.','Malwarebytes.Malwarebytes',1],
+  ['rufus','Rufus','Pete Batard','https://rufus.ie/','Makes a bootable Windows USB for your next build.','',1],
+ ]},
+];
+const PRESETS = [
+  {name:'Fresh install essentials', ids:['steam','epic','discord','vcredist','directx','dotnet','7zip','chrome','hwinfo','afterburner']},
+  {name:'NVIDIA build', ids:['nvapp','ddu','afterburner','rtss','gpuz','nvbroadcast']},
+  {name:'AMD build', ids:['amd','amdchip','ddu','afterburner','gpuz']},
+  {name:'Streamer setup', ids:['obs','streamlabs','voicemeeter','sharex','medal','discord']},
+  {name:'Stability testing', ids:['cinebench','occt','furmark','hwinfo','cdm','cdi']},
+];
+
+const T = {}; CATS.forEach(c => c.tools.forEach(t => T[t[0]] = {id:t[0],name:t[1],vendor:t[2],url:t[3],desc:t[4],wg:t[5],free:!!t[6],cat:c.id}));
+const ALL = Object.values(T);
+const host = u => new URL(u).hostname.replace(/^www\./,'');
+const hueOf = s => [...s].reduce((a,c)=>(a*31+c.charCodeAt(0))%360,7);
+const $ = s => document.querySelector(s);
+const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+// kit state
+let kit = new Set();
+try { const s = JSON.parse(localStorage.getItem('gk-kit')||'null'); if (Array.isArray(s)) kit = new Set(s.filter(i=>T[i])); else kit = new Set(PRESETS[0].ids); } catch(e){ kit = new Set(PRESETS[0].ids); }
+const save = () => { try{ localStorage.setItem('gk-kit', JSON.stringify([...kit])); }catch(e){} };
+
+// hero keycaps
+const WORD = 'GAMERKIT';
+const keysEl = $('#keys');
+[...WORD].forEach((ch,i) => {
+  const b = document.createElement('button');
+  b.className = 'key'; b.dataset.k = ch; b.setAttribute('aria-label', ch);
+  b.innerHTML = '<b>'+ch+'</b>';
+  b.style.setProperty('--kh', (i*45)%360);
+  b.addEventListener('click', () => press(b));
+  keysEl.appendChild(b);
+  if (i===4) { const g=document.createElement('span'); g.className='key gap'; keysEl.appendChild(g); }
+});
+let hue = 262;
+function press(b){
+  hue = (hue + 47 + Math.random()*60) % 360;
+  document.documentElement.style.setProperty('--h', Math.round(hue));
+  document.querySelectorAll('.key[data-k]').forEach((k,i)=>k.style.setProperty('--kh', Math.round((hue + i*24)%360)));
+  b.classList.add('down','lit'); setTimeout(()=>b.classList.remove('down'),140); setTimeout(()=>b.classList.remove('lit'),900);
+}
+document.addEventListener('keydown', e => {
+  if (e.target.closest('input,textarea') || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.key === '/') { e.preventDefault(); $('#q').focus(); return; }
+  if (e.key === 'Escape') { closeDrawer(); return; }
+  const k = [...document.querySelectorAll('.key[data-k="'+e.key.toUpperCase()+'"]')];
+  if (k.length) k.forEach(press);
+});
+
+// nav + meta
+$('#cats').innerHTML = CATS.map(c => '<a href="#'+c.id+'"><span class="roll"><span>'+c.name+'</span><span>'+c.name+'</span></span><sup>'+c.tools.length+'</sup></a>').join('');
+const wgCount = ALL.filter(t=>t.wg).length;
+$('#meta').innerHTML = '<span><b>'+ALL.length+'</b> tools</span><span><b>'+CATS.length+'</b> categories</span><span><b>'+wgCount+'</b> install with winget</span><span><b>0</b> files rehosted</span>';
+$('#presets').innerHTML = PRESETS.map((p,i)=>'<button class="preset" data-p="'+i+'">+ '+p.name+' <small>'+p.ids.length+'</small></button>').join('');
+$('#presets').addEventListener('click', e => { const b=e.target.closest('.preset'); if(!b) return; PRESETS[b.dataset.p].ids.forEach(i=>kit.add(i)); sync(true); });
+
+// shelves
+function card(t){
+  return '<article class="card'+(kit.has(t.id)?' on':'')+'" data-id="'+t.id+'">'+
+    '<div class="top"><span class="mark" style="--mh:'+hueOf(t.name)+'">'+esc(t.name[0])+'</span><div><h3>'+esc(t.name)+'</h3><span class="src">'+esc(host(t.url))+' · '+esc(t.vendor)+'</span></div></div>'+
+    '<p class="desc">'+esc(t.desc)+'</p>'+
+    '<div style="display:grid;gap:10px"><div class="tags"><span class="tag">'+(t.free?'free':'paid')+'</span>'+(t.wg?'<span class="tag w">winget</span>':'<span class="tag">manual install</span>')+'</div>'+
+    '<div class="actions"><a class="dl" href="'+t.url+'" target="_blank" rel="noopener noreferrer">'+DL+' Download</a>'+
+    '<button class="add" aria-pressed="'+kit.has(t.id)+'" aria-label="'+(kit.has(t.id)?'Remove ':'Add ')+esc(t.name)+(kit.has(t.id)?' from':' to')+' your kit">'+PLUS+'</button></div></div></article>';
+}
+function render(){
+  const q = $('#q').value.trim().toLowerCase(), fo = $('#free').checked, wo = $('#wg').checked;
+  let shown = 0;
+  $('#shelves').innerHTML = CATS.map(c => {
+    const list = c.tools.map(t=>T[t[0]]).filter(t => (!q || (t.name+' '+t.vendor+' '+t.desc+' '+c.name).toLowerCase().includes(q)) && (!fo||t.free) && (!wo||t.wg));
+    shown += list.length;
+    if (!list.length) return '';
+    return '<section class="shelf" id="'+c.id+'"><div class="shelf-head"><h2>'+c.name+'</h2><span class="n">'+list.length+(list.length===c.tools.length?'':' of '+c.tools.length)+'</span><button class="addall" data-cat="'+c.id+'">Add all to kit</button></div><p>'+c.blurb+'</p><div class="grid">'+list.map(card).join('')+'</div></section>';
+  }).join('') || '<p class="empty">No tools match “'+esc(q)+'”. Try a vendor name or a word like “driver”.</p>';
+}
+$('#shelves').addEventListener('click', e => {
+  const all = e.target.closest('.addall');
+  if (all) { e.currentTarget.querySelectorAll('#'+all.dataset.cat+' .card').forEach(c=>kit.add(c.dataset.id)); sync(true); return; }
+  const add = e.target.closest('.add'); if (!add) return;
+  const id = add.closest('.card').dataset.id;
+  kit.has(id) ? kit.delete(id) : kit.add(id); sync(kit.has(id));
+});
+$('#shelves').addEventListener('pointermove', e => {
+  const c = e.target.closest('.card'); if (!c) return;
+  const r = c.getBoundingClientRect();
+  c.style.setProperty('--mx', (e.clientX-r.left)+'px'); c.style.setProperty('--my', (e.clientY-r.top)+'px');
+});
+['input','change'].forEach(ev => ['#q','#free','#wg'].forEach(s => $(s).addEventListener(ev, render)));
+
+// kit tray + drawer
+function sync(bump){
+  save();
+  document.querySelectorAll('.card').forEach(c => {
+    const on = kit.has(c.dataset.id), t = T[c.dataset.id], b = c.querySelector('.add');
+    c.classList.toggle('on', on); b.setAttribute('aria-pressed', on);
+    b.setAttribute('aria-label', (on?'Remove ':'Add ')+t.name+(on?' from':' to')+' your kit');
+  });
+  const n = kit.size, tray = $('#tray');
+  tray.classList.toggle('hide', n===0);
+  $('#tcount').innerHTML = 'Your kit · <b>'+n+'</b> tool'+(n===1?'':'s');
+  if (bump && n) { tray.classList.remove('bump'); void tray.offsetWidth; tray.classList.add('bump'); }
+  if (!$('#drawer').hidden) fillDrawer();
+}
+function command(list){
+  return list.map(t => 'winget install -e --id '+t.wg+' --accept-package-agreements --accept-source-agreements').join('\n');
+}
+function fillDrawer(){
+  const items = [...kit].map(i=>T[i]);
+  const w = items.filter(t=>t.wg), m = items.filter(t=>!t.wg);
+  $('#dtitle').textContent = 'Your kit · '+items.length;
+  $('#wgnote').textContent = w.length
+    ? w.length+' of '+items.length+' tools in your kit install with winget, which is built into Windows 10 and 11. '+(m.length? 'The other '+m.length+' need the download links below.':'')
+    : 'None of the tools in your kit have a winget package yet. Use the download links below.';
+  $('#cmd').textContent = w.length ? command(w) : '# Add a tool tagged "winget" to build a command';
+  $('#copy').disabled = !w.length;
+  const row = t => '<li><div class="nm">'+esc(t.name)+'<small>'+esc(host(t.url))+(t.wg?' · winget':' · manual install')+'</small></div><a href="'+t.url+'" target="_blank" rel="noopener noreferrer">Download ↗</a><button data-rm="'+t.id+'" aria-label="Remove '+esc(t.name)+'">✕</button></li>';
+  $('#klist').innerHTML = [...m, ...w].map(row).join('') || '<li>Your kit is empty. Add tools with the + buttons.</li>';
+}
+let lastFocus;
+function openDrawer(){ lastFocus = document.activeElement; fillDrawer(); $('#drawer').hidden = false; $('#scrim').hidden = false; $('#close').focus(); }
+function closeDrawer(){ if ($('#drawer').hidden) return; $('#drawer').hidden = true; $('#scrim').hidden = true; lastFocus && lastFocus.focus(); }
+$('#open').onclick = openDrawer; $('#close').onclick = closeDrawer; $('#scrim').onclick = closeDrawer;
+$('#klist').addEventListener('click', e => { const b=e.target.closest('[data-rm]'); if(b){ kit.delete(b.dataset.rm); sync(false); if(!kit.size) closeDrawer(); } });
+$('#clear').onclick = () => { kit.clear(); sync(false); closeDrawer(); };
+$('#copy').onclick = async () => {
+  const b = $('#copy'), text = $('#cmd').textContent;
+  try { await navigator.clipboard.writeText(text); b.textContent = 'Copied'; b.classList.add('ok'); }
+  catch(e){ const r=document.createRange(); r.selectNodeContents($('#cmd')); const s=getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent='Selected, press Ctrl+C'; }
+  setTimeout(()=>{ b.textContent='Copy command'; b.classList.remove('ok'); }, 1800);
+};
+
+// theme toggle
+$('#theme').onclick = () => {
+  const r = document.documentElement, cur = r.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+  r.dataset.theme = cur==='dark'?'light':'dark';
+};
+
+render(); sync(false);
+})();
+</script>
+</body></html>
