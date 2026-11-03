@@ -22,3 +22,7 @@ Edit the `CATS` array in the `<script>` near the bottom of `index.html`. Each en
 ```
 
 Only link to the vendor's own site, and only add a winget ID you have confirmed with `winget show --id <id>`.
+
+## Logos
+
+Brand logos are embedded in `index.html` as SVG paths from [Simple Icons](https://simpleicons.org/) (CC0) and [Arcticons](https://github.com/Arcticons-Team/Arcticons) (CC BY-SA 4.0). Logos remain trademarks of their owners and are shown only to identify each product. Tools without an open-licensed logo show their website's icon, loaded from Google's favicon service, with a letter tile as the fallback.
