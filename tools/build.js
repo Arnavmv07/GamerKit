@@ -16,7 +16,7 @@ const esc = s => s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&l
   const b = await chromium.launch(); const p = await b.newPage({viewport:{width:1200,height:630}});
   await p.route('**/jszip.min.js', r => r.fulfill({body:'', contentType:'text/javascript'}));
   await p.goto('file://' + path.resolve(tmp)); await p.waitForTimeout(2500);
-  const pre = await p.evaluate(() => Object.fromEntries(['cats','meta','presets','shelves'].map(id => [id, document.getElementById(id).innerHTML])));
+  const pre = await p.evaluate(() => Object.fromEntries(['cats','presets','shelves'].map(id => [id, document.getElementById(id).innerHTML])));
   const items = await p.$$eval('.card, .chk', cs => cs.map(c => ({name:(c.querySelector('h3')||c.querySelector('.nm')).textContent, url:(c.querySelector('.dl')||c.querySelector('.ext')).href})));
   const faqs = await p.$$eval('.faq details', ds => ds.map(d => ({q:d.querySelector('summary').textContent, a:d.querySelector('p').textContent})));
   await p.evaluate(() => { document.querySelectorAll('.key[data-k]').forEach(k=>k.classList.remove('lit')); scrollTo(0,0); });
