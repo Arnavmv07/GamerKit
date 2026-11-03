@@ -91,6 +91,14 @@ header.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;backgroun
 .lede strong{font-weight:600}
 .meta{display:flex;flex-wrap:wrap;gap:8px 22px;font-family:var(--f-mono);font-size:12px;color:var(--muted)}
 .meta b{color:var(--ink);font-weight:500}
+.cta{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px}
+.big{font:inherit;font-weight:600;font-size:15.5px;border:0;border-radius:12px;padding:13px 20px;cursor:pointer;display:inline-flex;align-items:center;gap:10px;
+  background:var(--accent);color:var(--accent-ink);box-shadow:0 6px 0 color-mix(in srgb,var(--accent) 55%,#000),0 10px 30px var(--glow);transform:translateY(0);transition:transform .12s,box-shadow .12s,background .4s}
+.big:hover{transform:translateY(-2px);box-shadow:0 8px 0 color-mix(in srgb,var(--accent) 55%,#000),0 14px 40px var(--glow)}
+.big:active{transform:translateY(5px);box-shadow:0 1px 0 color-mix(in srgb,var(--accent) 55%,#000),0 4px 16px var(--glow)}
+.big svg{width:18px;height:18px}
+.big[disabled]{opacity:.7;cursor:progress}
+.cta .hint{max-width:46ch}
 
 /* presets + tools bar */
 .bar{display:grid;gap:14px;padding:18px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);margin-bottom:40px}
@@ -219,6 +227,7 @@ pre.cmd{margin:0;background:var(--sunk);border:1px solid var(--line);border-radi
     <span class="hint">Press a key, or type <kbd>G</kbd><kbd>A</kbd><kbd>M</kbd><kbd>E</kbd>… on your keyboard, to change the lighting.</span>
     <p class="lede">Every app a fresh gaming PC needs, in one place. <strong>Pick your launchers, drivers and tools</strong>, then download each from its official site or install the whole kit with one command.</p>
     <div class="meta" id="meta"></div>
+    <div class="cta"><button class="big" id="all"></button><span class="hint" id="allnote"></span></div>
   </section>
 
   <section class="wrap" id="main">
@@ -274,9 +283,10 @@ pre.cmd{margin:0;background:var(--sunk);border:1px solid var(--line);border-radi
       <ul class="klist" id="klist"></ul>
     </section>
   </div>
-  <div class="foot"><button class="ghost" id="clear">Empty kit</button><span class="hint">Open PowerShell or Terminal, paste, press Enter.</span></div>
+  <div class="foot"><button class="ghost" id="zipkit">Download kit (.zip)</button><button class="ghost" id="clear">Empty kit</button><span class="hint">Paste the command into PowerShell, or download the kit as a zip with a ready-made installer.</span></div>
 </aside>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
 (() => {
 const DL='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v8M4.5 6.8 8 10.3l3.5-3.5M2.5 13.5h11"/></svg>';
@@ -593,6 +603,44 @@ function watchShelves(){
   }), {rootMargin:'-35% 0px -60% 0px'});
   document.querySelectorAll('.shelf').forEach(s => io.observe(s));
 }
+
+// one-button zip: an installer script (winget always fetches each publisher's latest release) + shortcuts to official pages
+const CRLF = a => a.join('\r\n') + '\r\n';
+const safe = n => n.replace(/[\\/:*?"<>|]/g, '');
+async function makeZip(list, label, btn){
+  if (!window.JSZip) { btn.textContent = 'Zip tool did not load. Check your connection and retry.'; return; }
+  const old = btn.innerHTML; btn.disabled = true; btn.textContent = 'Packing…';
+  const w = list.filter(t=>t.wg), m = list.filter(t=>!t.wg), z = new JSZip(), f = z.folder('GamerKit');
+  f.file('Install GamerKit.bat', CRLF([
+    '@echo off', 'title GamerKit installer', 'echo.',
+    'echo GamerKit will install '+w.length+' apps with winget.',
+    'echo Each app downloads the newest release straight from its publisher.',
+    'echo Windows may ask for permission for some of them. Click Yes.', 'echo.',
+    'where winget >nul 2>nul || (echo winget is missing. Install "App Installer" from the Microsoft Store, then run this again. & pause & exit /b 1)',
+    'winget source update', 'echo.',
+    ...w.flatMap(t => ['echo ==== '+t.name+' ====', 'winget install -e --id '+t.wg+' --accept-package-agreements --accept-source-agreements']),
+    'echo.', 'echo All done.'+(m.length?' Open the "Download manually" folder for the other '+m.length+' tools.':''), 'pause'
+  ]));
+  f.file('Update everything.bat', CRLF(['@echo off','title GamerKit updater','echo Updating every app that winget knows about to its latest version...','winget upgrade --all --accept-package-agreements --accept-source-agreements','pause']));
+  const md = f.folder('Download manually');
+  m.forEach(t => md.file(safe(t.name)+'.url', CRLF(['[InternetShortcut]','URL='+t.url])));
+  f.file('READ ME.txt', CRLF([
+    'GamerKit ('+label+')', '',
+    '1. Double-click "Install GamerKit.bat". It installs '+w.length+' apps, always the latest version, from each publisher via winget.',
+    m.length ? '2. Open "Download manually". Each shortcut opens the official download page for one of the other '+m.length+' tools (mostly GPU drivers and vendor apps).' : '2. Nothing to download by hand.',
+    '3. Later, run "Update everything.bat" to bring every app up to date.', '',
+    'GamerKit does not host any installers. Everything comes from the developers themselves.', '',
+    'Included:', ...list.map(t => ' - '+t.name+(t.wg?'  (auto install)':'  (manual: '+t.url+')'))
+  ]));
+  const blob = await z.generateAsync({type:'blob'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'GamerKit-'+label.replace(/\W+/g,'-')+'.zip';
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+  btn.textContent = 'Downloaded'; burst(btn, 8); setTimeout(()=>{ btn.innerHTML = old; btn.disabled = false; }, 1600);
+}
+$('#all').innerHTML = DL + ' Download everything (.zip)';
+$('#allnote').textContent = 'All '+ALL.length+' tools in one zip: an installer that sets up '+wgCount+' of them at their latest version, plus official links for the rest.';
+$('#all').onclick = () => makeZip(ALL, 'everything', $('#all'));
+$('#zipkit').onclick = () => kit.size && makeZip([...kit].map(i=>T[i]), 'my-kit', $('#zipkit'));
 
 render(); sync(false); watchShelves();
 // opening moment: the keycaps light up left to right once
