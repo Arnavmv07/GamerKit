@@ -91,14 +91,18 @@ header.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;backgroun
 .lede strong{font-weight:600}
 .meta{display:flex;flex-wrap:wrap;gap:8px 22px;font-family:var(--f-mono);font-size:12px;color:var(--muted)}
 .meta b{color:var(--ink);font-weight:500}
-.cta{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px}
+.everything{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:18px 24px;margin-bottom:56px;padding:28px;border-radius:var(--r);
+  background:var(--surface);border:1px solid var(--line);box-shadow:0 0 0 1px color-mix(in srgb,var(--accent) 25%,transparent),0 18px 50px var(--glow)}
+.everything div{min-width:0;flex:1 1 320px}
+.everything h2{font-family:var(--f-display);font-weight:800;font-size:clamp(26px,3.4vw,36px);letter-spacing:-.02em;margin:0 0 6px}
+.everything .hint{margin:0;max-width:60ch;font-size:12.5px}
 .big{font:inherit;font-weight:600;font-size:15.5px;border:0;border-radius:12px;padding:13px 20px;cursor:pointer;display:inline-flex;align-items:center;gap:10px;
   background:var(--accent);color:var(--accent-ink);box-shadow:0 6px 0 color-mix(in srgb,var(--accent) 55%,#000),0 10px 30px var(--glow);transform:translateY(0);transition:transform .12s,box-shadow .12s,background .4s}
 .big:hover{transform:translateY(-2px);box-shadow:0 8px 0 color-mix(in srgb,var(--accent) 55%,#000),0 14px 40px var(--glow)}
 .big:active{transform:translateY(5px);box-shadow:0 1px 0 color-mix(in srgb,var(--accent) 55%,#000),0 4px 16px var(--glow)}
 .big svg{width:18px;height:18px}
 .big[disabled]{opacity:.7;cursor:progress}
-.cta .hint{max-width:46ch}
+
 
 /* presets + tools bar */
 .bar{display:grid;gap:14px;padding:18px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);margin-bottom:40px}
@@ -204,6 +208,8 @@ pre.cmd{margin:0;background:var(--sunk);border:1px solid var(--line);border-radi
 @media (max-width:560px){
   .hero{padding-block:36px 24px}
   .tray{padding-left:16px;gap:10px}
+  .meter{display:none}
+  .everything{padding:22px}
 }
 @media (prefers-reduced-motion:reduce){*,*::before{transition:none!important;animation:none!important}html{scroll-behavior:auto}}
 </style>
@@ -227,7 +233,6 @@ pre.cmd{margin:0;background:var(--sunk);border:1px solid var(--line);border-radi
     <span class="hint">Press a key, or type <kbd>G</kbd><kbd>A</kbd><kbd>M</kbd><kbd>E</kbd>… on your keyboard, to change the lighting.</span>
     <p class="lede">Every app a fresh gaming PC needs, in one place. <strong>Pick your launchers, drivers and tools</strong>, then download each from its official site or install the whole kit with one command.</p>
     <div class="meta" id="meta"></div>
-    <div class="cta"><button class="big" id="all"></button><span class="hint" id="allnote"></span></div>
   </section>
 
   <section class="wrap" id="main">
@@ -250,6 +255,11 @@ pre.cmd{margin:0;background:var(--sunk);border:1px solid var(--line);border-radi
       <div><b>step 1</b><h3>Build your kit</h3><p>Tap + on any tool or start from a preset. Your kit is saved in this browser.</p></div>
       <div><b>step 2</b><h3>Install in one go</h3><p>Open your kit and copy the winget command into PowerShell. It installs every supported app silently, one after another.</p></div>
       <div><b>step 3</b><h3>Grab the rest</h3><p>Drivers and vendor apps without a winget package get a direct button to the official download page.</p></div>
+    </div>
+
+    <div class="everything">
+      <div><h2>Want all of it?</h2><p class="hint" id="allnote"></p></div>
+      <button class="big" id="all"></button>
     </div>
   </section>
 </main>
