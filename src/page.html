@@ -135,6 +135,19 @@ header.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;backgroun
 .shelf > p{margin:-8px 0 16px;color:var(--muted);max-width:65ch}
 .shelf-head .addall{margin-left:auto;font:inherit;font-size:12.5px;background:none;border:0;color:var(--muted);cursor:pointer;padding:4px 0;text-decoration:underline;text-underline-offset:3px}
 .shelf-head .addall:hover{color:var(--ink)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:var(--bg)}
+.seg button{font:inherit;font-size:13px;border:0;background:none;color:var(--muted);padding:5px 12px;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgb(0 0 0 / .08)}
+.checks{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr));gap:2px 14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.chk{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:8px;cursor:pointer;min-width:0;user-select:none}
+.chk:hover{background:var(--sunk)}
+.chk input{width:17px;height:17px;flex:none;accent-color:var(--ink);margin:0;cursor:pointer}
+.chk .nm{flex:1;min-width:0;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chk .ext{flex:none;color:var(--muted);text-decoration:none;font-size:13px;padding:2px 4px;border-radius:4px;opacity:0;transition:opacity .15s}
+.chk:hover .ext,.chk .ext:focus-visible{opacity:1}
+.chk .ext:hover{color:var(--ink)}
+@media (pointer:coarse){.chk .ext{opacity:1}}
+.tray .t2{background:transparent;color:var(--bg);border:1px solid color-mix(in srgb,var(--bg) 35%,transparent)}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
 .card{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:grid;grid-template-rows:auto 1fr auto;gap:12px;overflow:hidden;
   transform:perspective(900px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) translateY(var(--ty,0px));
@@ -269,6 +282,8 @@ pre.cmd{margin:0;background:var(--sunk);border:1px solid var(--line);border-radi
   .hero{padding-block:36px 24px}
   .tray{padding-left:16px;gap:10px}
   .meter{display:none}
+  .tray .kl{display:none}
+  .tray button{padding:9px 12px}
   .everything{padding:22px}
 }
 @media (prefers-reduced-motion:reduce){*,*::before{transition:none!important;animation:none!important}html{scroll-behavior:auto}}
@@ -306,15 +321,16 @@ pre.cmd{margin:0;background:var(--sunk);border:1px solid var(--line);border-radi
         <label class="search"><span class="skip">Search tools</span><input id="q" type="search" placeholder="Search Steam, drivers, RGB, benchmark…" autocomplete="off"><kbd>/</kbd></label>
         <label class="toggle"><input type="checkbox" id="free"> Free only</label>
         <label class="toggle"><input type="checkbox" id="wg"> Installs with winget</label>
+        <div class="seg" role="group" aria-label="Layout"><button id="v-list" data-v="list">Checklist</button><button id="v-cards" data-v="cards">Cards</button></div>
       </div>
     </div>
 
     <div id="shelves"></div>
 
     <div class="how" aria-label="How it works">
-      <div><b>step 1</b><h3>Build your kit</h3><p>Tap + on any tool or start from a preset. Your kit is saved in this browser.</p></div>
-      <div><b>step 2</b><h3>Install in one go</h3><p>Open your kit and copy the winget command into PowerShell. It installs every supported app silently, one after another.</p></div>
-      <div><b>step 3</b><h3>Grab the rest</h3><p>Drivers and vendor apps without a winget package get a direct button to the official download page.</p></div>
+      <div><b>step 1</b><h3>Pick your apps</h3><p>Tick everything you want, or start from a preset. No account needed.</p></div>
+      <div><b>step 2</b><h3>Get your GamerKit</h3><p>One button downloads a small zip made for your picks, with one installer inside.</p></div>
+      <div><b>step 3</b><h3>Run it and walk away</h3><p>Windows asks for permission once. Then every app installs silently at its latest version, already up-to-date apps are skipped, and you never click Next. Run it again later to update everything.</p></div>
     </div>
 
     <section class="play" id="play" aria-labelledby="play-h">
@@ -349,9 +365,9 @@ pre.cmd{margin:0;background:var(--sunk);border:1px solid var(--line);border-radi
       <div class="sec-head"><h2 id="faq-h">Questions</h2></div>
       <details><summary>What should I install first on a new gaming PC?</summary><p>Start with your graphics driver (the NVIDIA App, AMD Software: Adrenalin or Intel's Driver &amp; Support Assistant), then your game launchers such as Steam and the Epic Games Launcher, then Discord and a monitoring tool like HWiNFO or MSI Afterburner.</p></details>
       <details><summary>Is it safe to download from GamerKit?</summary><p>GamerKit hosts no files. Each Download button opens the developer's official site, and the installer script uses winget, the package manager built into Windows 10 and 11.</p></details>
-      <details><summary>How does the one-click install work?</summary><p>Download everything, or your own kit, as a zip. Run "Install GamerKit.bat" and winget installs each supported app one after another at its latest version. If you would rather have the installer files, run "Download installers.bat" and they are saved into an Installers folder, fetched straight from each publisher. Tools without a winget package come as shortcuts to their official download pages.</p></details>
+      <details><summary>How does the one-click install work?</summary><p>Download everything, or your own kit, as a zip. Run "GamerKit Installer.bat". Windows asks for permission once, then winget installs each supported app silently at its latest version and skips any that are already up to date. If you would rather have the installer files, run "Download installers.bat" and they are saved into an Installers folder, fetched straight from each publisher. Tools without a winget package come as shortcuts to their official download pages.</p></details>
       <details><summary>Do I need to install DirectX or Visual C++ separately?</summary><p>Usually not. Games install the runtimes they need during setup, so GamerKit leaves them out.</p></details>
-      <details><summary>Will the apps stay up to date?</summary><p>Most update themselves. You can also run "Update everything.bat" from the zip, which upgrades every app winget knows about.</p></details>
+      <details><summary>Will the apps stay up to date?</summary><p>Most update themselves. You can also run "GamerKit Installer.bat" again at any time. It skips apps that are already up to date and updates the rest.</p></details>
     </section>
 
     <div class="everything">
@@ -373,7 +389,8 @@ pre.cmd{margin:0;background:var(--sunk);border:1px solid var(--line);border-radi
 <div class="tray hide" id="tray" role="region" aria-label="Your kit">
   <span class="meter" id="meter" aria-hidden="true"></span>
   <span class="count" id="tcount"></span>
-  <button id="open">Review &amp; install</button>
+  <button class="t2" id="open">Review</button>
+  <button id="get">Get your GamerKit</button>
 </div>
 
 <div class="scrim" id="scrim" hidden></div>
@@ -582,19 +599,35 @@ function card(t){
     '<div class="actions"><a class="dl" href="'+t.url+'" target="_blank" rel="noopener noreferrer">'+DL+' Download</a>'+
     '<button class="add" aria-pressed="'+kit.has(t.id)+'" aria-label="'+(kit.has(t.id)?'Remove ':'Add ')+esc(t.name)+(kit.has(t.id)?' from':' to')+' your kit">'+PLUS+'</button></div></div></article>';
 }
+let view = 'list'; try { view = localStorage.getItem('gk-view') || 'list'; } catch(e){}
+function check(t){
+  return '<label class="chk"><input type="checkbox" data-id="'+t.id+'"'+(kit.has(t.id)?' checked':'')+'>'+logo(t,'sm')+'<span class="nm">'+esc(t.name)+'</span>'+
+    '<a class="ext" href="'+t.url+'" target="_blank" rel="noopener noreferrer" title="Official download page" aria-label="'+esc(t.name)+' official download page">↗</a></label>';
+}
+function setView(v){
+  view = v; try { localStorage.setItem('gk-view', v); } catch(e){}
+  document.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === v));
+  render(); watchShelves();
+}
+document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => setView(b.dataset.v)));
 function render(){
+  document.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === view));
   const q = $('#q').value.trim().toLowerCase(), fo = $('#free').checked, wo = $('#wg').checked;
   let shown = 0;
   $('#shelves').innerHTML = CATS.map(c => {
     const list = c.tools.map(t=>T[t[0]]).filter(t => (!q || (t.name+' '+t.vendor+' '+t.desc+' '+c.name).toLowerCase().includes(q)) && (!fo||t.free) && (!wo||t.wg));
     shown += list.length;
     if (!list.length) return '';
-    return '<section class="shelf" id="'+c.id+'"><div class="shelf-head"><h2>'+c.name+'</h2><span class="n">'+list.length+(list.length===c.tools.length?'':' of '+c.tools.length)+'</span><button class="addall" data-cat="'+c.id+'">Add all to kit</button></div><p>'+c.blurb+'</p><div class="grid">'+list.map(card).join('')+'</div></section>';
+    return '<section class="shelf" id="'+c.id+'"><div class="shelf-head"><h2>'+c.name+'</h2><span class="n">'+list.length+(list.length===c.tools.length?'':' of '+c.tools.length)+'</span><button class="addall" data-cat="'+c.id+'">Add all to kit</button></div><p>'+c.blurb+'</p>'+(view==='list' ? '<div class="checks">'+list.map(check).join('')+'</div>' : '<div class="grid">'+list.map(card).join('')+'</div>')+'</section>';
   }).join('') || '<p class="empty">No tools match “'+esc(q)+'”. Try a vendor name or a word like “driver”.</p>';
 }
+$('#shelves').addEventListener('change', e => {
+  const c = e.target.closest('.chk input'); if (!c) return;
+  c.checked ? kit.add(c.dataset.id) : kit.delete(c.dataset.id); sync(c.checked);
+});
 $('#shelves').addEventListener('click', e => {
   const all = e.target.closest('.addall');
-  if (all) { const cs=e.currentTarget.querySelectorAll('#'+all.dataset.cat+' .card'); cs.forEach(c=>kit.add(c.dataset.id)); sync(true); burst(all, cs.length); return; }
+  if (all) { const cs=e.currentTarget.querySelectorAll('#'+all.dataset.cat+' [data-id]'); cs.forEach(c=>kit.add(c.dataset.id)); sync(true); return; }
   const add = e.target.closest('.add'); if (!add) return;
   const id = add.closest('.card').dataset.id;
   kit.has(id) ? kit.delete(id) : kit.add(id); sync(kit.has(id)); if (kit.has(id)) burst(add, 1);
@@ -614,6 +647,7 @@ $('#shelves').addEventListener('pointerleave', () => { untilt(tilted); tilted = 
 // kit tray + drawer
 function sync(bump){
   save();
+  document.querySelectorAll('.chk input').forEach(c => { c.checked = kit.has(c.dataset.id); });
   document.querySelectorAll('.card').forEach(c => {
     const on = kit.has(c.dataset.id), t = T[c.dataset.id], b = c.querySelector('.add');
     c.classList.toggle('on', on); b.setAttribute('aria-pressed', on);
@@ -621,7 +655,7 @@ function sync(bump){
   });
   const n = kit.size, tray = $('#tray');
   tray.classList.toggle('hide', n===0);
-  $('#tcount').innerHTML = 'Your kit · <b>'+n+'</b> tool'+(n===1?'':'s');
+  $('#tcount').innerHTML = '<span class="kl">Your kit · </span><b>'+n+'</b> tool'+(n===1?'':'s');
   const covered = new Set([...kit].map(i=>T[i].cat));
   $('#meter').innerHTML = CATS.map(c=>'<i class="'+(covered.has(c.id)?'f':'')+'" title="'+c.name+'"></i>').join('');
   if (bump && n) { tray.classList.remove('bump'); void tray.offsetWidth; tray.classList.add('bump'); }
@@ -709,15 +743,32 @@ async function makeZip(list, label, btn){
   if (!window.JSZip) { btn.textContent = 'Zip tool did not load. Check your connection and retry.'; return; }
   const old = btn.innerHTML; btn.disabled = true; btn.textContent = 'Packing…';
   const w = list.filter(t=>t.wg), m = list.filter(t=>!t.wg), z = new JSZip(), f = z.folder('GamerKit');
-  f.file('Install GamerKit.bat', CRLF([
-    '@echo off', 'title GamerKit installer', 'echo.',
-    'echo GamerKit will install '+w.length+' apps with winget.',
-    'echo Each app downloads the newest release straight from its publisher.',
-    'echo Windows may ask for permission for some of them. Click Yes.', 'echo.',
-    'where winget >nul 2>nul || (echo winget is missing. Install "App Installer" from the Microsoft Store, then run this again. & pause & exit /b 1)',
-    'winget source update', 'echo.',
-    ...w.flatMap(t => ['echo ==== '+t.name+' ====', 'winget install -e --id '+t.wg+' --accept-package-agreements --accept-source-agreements']),
-    'echo.', 'echo All done.'+(m.length?' Open the "Download manually" folder for the other '+m.length+' tools.':''), 'pause'
+  f.file('GamerKit Installer.bat', CRLF([
+    '@echo off', 'setlocal EnableDelayedExpansion', 'title GamerKit',
+    ':: ask for administrator rights once, so the installs below run without further prompts',
+    'net session >nul 2>&1 || (powershell -NoProfile -Command "Start-Process -FilePath \'%~f0\' -Verb RunAs" & exit /b)',
+    'cd /d "%~dp0"', 'echo.',
+    'echo  GamerKit is setting up '+w.length+' apps for you.',
+    'echo  Each one is the latest version, straight from its publisher. Apps that are already up to date are skipped.',
+    'echo  No choices, no clicking Next. You can leave this running. Run this file again any time to update everything.',
+    'echo.',
+    'where winget >nul 2>nul || (echo  winget is missing. Install "App Installer" from the Microsoft Store, then run this again. & pause & exit /b 1)',
+    'winget source update >nul 2>&1',
+    'set n=0& set ok=0& set skip=0& set fail=0& set "failed="',
+    ...w.map(t => 'call :app "'+t.name+'" '+t.wg),
+    'echo.',
+    'echo  Done. !ok! installed or updated, !skip! already up to date, !fail! failed.',
+    'if defined failed echo  Could not install: !failed:~2!. Get these from their official download pages at arnavmv07.github.io/GamerKit',
+    m.length ? 'echo  '+m.length+(m.length===1?' tool does':' tools do')+' not support automatic install. Open the "Download manually" folder for '+(m.length===1?'it.':'them.') : 'rem',
+    'echo.', 'pause', 'exit /b',
+    '',
+    ':app',
+    'set /a n+=1',
+    'echo  [!n!/'+w.length+'] %~1',
+    'winget install -e --id %~2 --silent --disable-interactivity --accept-package-agreements --accept-source-agreements >nul 2>&1',
+    'set rc=!errorlevel!',
+    'if "!rc!"=="0" (set /a ok+=1 & echo        installed) else if "!rc!"=="-1978335189" (set /a skip+=1 & echo        already up to date) else if "!rc!"=="-1978335135" (set /a skip+=1 & echo        already up to date) else (set /a fail+=1 & set "failed=!failed!, %~1" & echo        failed, error !rc!)',
+    'exit /b'
   ]));
   f.file('Download installers.bat', CRLF([
     '@echo off', 'title GamerKit installer download', 'echo.',
@@ -728,15 +779,15 @@ async function makeZip(list, label, btn){
     ...w.flatMap(t => ['echo ==== '+t.name+' ====', 'winget download -e --id '+t.wg+' --download-directory "%~dp0Installers\\'+safe(t.name)+'" --accept-package-agreements --accept-source-agreements']),
     'echo.', 'echo Done. Your installers are in the "Installers" folder next to this file.', 'start "" "%~dp0Installers"', 'pause'
   ]));
-  f.file('Update everything.bat', CRLF(['@echo off','title GamerKit updater','echo Updating every app that winget knows about to its latest version...','winget upgrade --all --accept-package-agreements --accept-source-agreements','pause']));
   const md = f.folder('Download manually');
   m.forEach(t => md.file(safe(t.name)+'.url', CRLF(['[InternetShortcut]','URL='+t.url])));
   f.file('READ ME.txt', CRLF([
     'GamerKit ('+label+')', '',
-    '1. Double-click "Install GamerKit.bat". It installs '+w.length+' apps, always the latest version, from each publisher via winget.',
-    '   Prefer to run the installers yourself? Double-click "Download installers.bat" instead. It saves the latest installer of each app into an "Installers" folder.',
+    '1. Double-click "GamerKit Installer.bat". Windows asks for permission once, then '+w.length+' apps install silently, each the latest version from its publisher.',
+    '   Apps that are already up to date are skipped, so run it again any time to update everything.',
+    '   Prefer to run the installers yourself? Double-click "Download installers.bat". It saves the latest installer of each app into an "Installers" folder.',
     m.length ? '2. Open "Download manually". Each shortcut opens the official download page for one of the other '+m.length+' tools (mostly GPU drivers and vendor apps).' : '2. Nothing to download by hand.',
-    '3. Later, run "Update everything.bat" to bring every app up to date.', '',
+    '',
     'GamerKit does not host any installers. Everything comes from the developers themselves.', '',
     'Included:', ...list.map(t => ' - '+t.name+(t.wg?'  (auto install)':'  (manual: '+t.url+')'))
   ]));
@@ -755,7 +806,8 @@ async function makeZip(list, label, btn){
 $('#all').innerHTML = DL + ' Download everything (.zip)';
 $('#allnote').textContent = 'All '+ALL.length+' tools in one zip. Run it to install '+wgCount+' of them in one go, or to download their latest official installers into a folder. The other '+(ALL.length-wgCount)+' come as links to their official download pages.';
 $('#all').onclick = () => makeZip(ALL, 'everything', $('#all'));
-$('#zipkit').onclick = () => kit.size && makeZip([...kit].map(i=>T[i]), 'my-kit', $('#zipkit'));
+$('#zipkit').onclick = () => kit.size && makeZip([...kit].map(i=>T[i]), kit.size+'-apps', $('#zipkit'));
+$('#get').onclick = () => kit.size && makeZip([...kit].map(i=>T[i]), kit.size+'-apps', $('#get'));
 
 // ---- warm-up games ----
 const store = { get(k){ try { return JSON.parse(localStorage.getItem(k)); } catch(e){ return null; } }, set(k,v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} } };
