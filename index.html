@@ -748,9 +748,16 @@ async function makeZip(list, label, btn){
     'GamerKit does not host any installers. Everything comes from the developers themselves.', '',
     'Included:', ...list.map(t => ' - '+t.name+(t.wg?'  (auto install)':'  (manual: '+t.url+')'))
   ]));
-  const blob = await z.generateAsync({type:'blob'});
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'GamerKit-'+label.replace(/\W+/g,'-')+'.zip';
-  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+  const blob = await z.generateAsync({type:'blob'}), filename = 'GamerKit-'+label.replace(/\W+/g,'-')+'.zip';
+  // inside the Claude viewer, ask for the save through its downloads permission; on the live site, a normal download
+  const dl = window.claude && window.claude.use ? await window.claude.use('downloads').catch(()=>null) : null;
+  if (dl) {
+    try { await dl.save({filename, data: blob}); }
+    catch (err) { btn.textContent = err && err.code === 'declined' ? 'Download cancelled' : 'Download unavailable here'; setTimeout(()=>{ btn.innerHTML = old; btn.disabled = false; }, 1800); return; }
+  } else {
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+  }
   btn.textContent = 'Downloaded'; burst(btn, 8); setTimeout(()=>{ btn.innerHTML = old; btn.disabled = false; }, 1600);
 }
 $('#all').innerHTML = DL + ' Download everything (.zip)';
