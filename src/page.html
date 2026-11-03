@@ -341,7 +341,7 @@ pre.cmd{margin:0;background:var(--sunk);border:1px solid var(--line);border-radi
       <div class="sec-head"><h2 id="faq-h">Questions</h2></div>
       <details><summary>What should I install first on a new gaming PC?</summary><p>Start with your graphics driver (the NVIDIA App, AMD Software: Adrenalin or Intel's Driver &amp; Support Assistant), then your game launchers such as Steam and the Epic Games Launcher, then Discord and a monitoring tool like HWiNFO or MSI Afterburner.</p></details>
       <details><summary>Is it safe to download from GamerKit?</summary><p>GamerKit hosts no files. Each Download button opens the developer's official site, and the installer script uses winget, the package manager built into Windows 10 and 11.</p></details>
-      <details><summary>How does the one-click install work?</summary><p>Download everything, or your own kit, as a zip. Run "Install GamerKit.bat" and winget installs each supported app one after another at its latest version. Tools without a winget package come as shortcuts to their official download pages.</p></details>
+      <details><summary>How does the one-click install work?</summary><p>Download everything, or your own kit, as a zip. Run "Install GamerKit.bat" and winget installs each supported app one after another at its latest version. If you would rather have the installer files, run "Download installers.bat" and they are saved into an Installers folder, fetched straight from each publisher. Tools without a winget package come as shortcuts to their official download pages.</p></details>
       <details><summary>Do I need to install DirectX or Visual C++ separately?</summary><p>Usually not. Games install the runtimes they need during setup, so GamerKit leaves them out.</p></details>
       <details><summary>Will the apps stay up to date?</summary><p>Most update themselves. You can also run "Update everything.bat" from the zip, which upgrades every app winget knows about.</p></details>
     </section>
@@ -712,12 +712,22 @@ async function makeZip(list, label, btn){
     ...w.flatMap(t => ['echo ==== '+t.name+' ====', 'winget install -e --id '+t.wg+' --accept-package-agreements --accept-source-agreements']),
     'echo.', 'echo All done.'+(m.length?' Open the "Download manually" folder for the other '+m.length+' tools.':''), 'pause'
   ]));
+  f.file('Download installers.bat', CRLF([
+    '@echo off', 'title GamerKit installer download', 'echo.',
+    'echo Downloading the latest installer for '+w.length+' apps into the "Installers" folder.',
+    'echo Each file comes straight from its publisher. Nothing is installed yet.', 'echo.',
+    'where winget >nul 2>nul || (echo winget is missing. Install "App Installer" from the Microsoft Store, then run this again. & pause & exit /b 1)',
+    'winget source update', 'echo.',
+    ...w.flatMap(t => ['echo ==== '+t.name+' ====', 'winget download -e --id '+t.wg+' --download-directory "%~dp0Installers\\'+safe(t.name)+'" --accept-package-agreements --accept-source-agreements']),
+    'echo.', 'echo Done. Your installers are in the "Installers" folder next to this file.', 'start "" "%~dp0Installers"', 'pause'
+  ]));
   f.file('Update everything.bat', CRLF(['@echo off','title GamerKit updater','echo Updating every app that winget knows about to its latest version...','winget upgrade --all --accept-package-agreements --accept-source-agreements','pause']));
   const md = f.folder('Download manually');
   m.forEach(t => md.file(safe(t.name)+'.url', CRLF(['[InternetShortcut]','URL='+t.url])));
   f.file('READ ME.txt', CRLF([
     'GamerKit ('+label+')', '',
     '1. Double-click "Install GamerKit.bat". It installs '+w.length+' apps, always the latest version, from each publisher via winget.',
+    '   Prefer to run the installers yourself? Double-click "Download installers.bat" instead. It saves the latest installer of each app into an "Installers" folder.',
     m.length ? '2. Open "Download manually". Each shortcut opens the official download page for one of the other '+m.length+' tools (mostly GPU drivers and vendor apps).' : '2. Nothing to download by hand.',
     '3. Later, run "Update everything.bat" to bring every app up to date.', '',
     'GamerKit does not host any installers. Everything comes from the developers themselves.', '',
@@ -736,7 +746,7 @@ async function makeZip(list, label, btn){
   btn.textContent = 'Downloaded'; burst(btn, 8); setTimeout(()=>{ btn.innerHTML = old; btn.disabled = false; }, 1600);
 }
 $('#all').innerHTML = DL + ' Download everything (.zip)';
-$('#allnote').textContent = 'All '+ALL.length+' tools in one zip: an installer that sets up '+wgCount+' of them at their latest version, plus official links for the rest.';
+$('#allnote').textContent = 'All '+ALL.length+' tools in one zip. Run it to install '+wgCount+' of them in one go, or to download their latest official installers into a folder. The other '+(ALL.length-wgCount)+' come as links to their official download pages.';
 $('#all').onclick = () => makeZip(ALL, 'everything', $('#all'));
 $('#zipkit').onclick = () => kit.size && makeZip([...kit].map(i=>T[i]), 'my-kit', $('#zipkit'));
 
