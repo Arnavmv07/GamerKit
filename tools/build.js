@@ -17,7 +17,7 @@ const esc = s => s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&l
   await p.route('**/jszip.min.js', r => r.fulfill({body:'', contentType:'text/javascript'}));
   await p.goto('file://' + path.resolve(tmp)); await p.waitForTimeout(2500);
   const pre = await p.evaluate(() => Object.fromEntries(['cats','meta','presets','shelves'].map(id => [id, document.getElementById(id).innerHTML])));
-  const items = await p.$$eval('.card', cs => cs.map(c => ({name:c.querySelector('h3').textContent, url:c.querySelector('.dl').href})));
+  const items = await p.$$eval('.card, .chk', cs => cs.map(c => ({name:(c.querySelector('h3')||c.querySelector('.nm')).textContent, url:(c.querySelector('.dl')||c.querySelector('.ext')).href})));
   const faqs = await p.$$eval('.faq details', ds => ds.map(d => ({q:d.querySelector('summary').textContent, a:d.querySelector('p').textContent})));
   await p.evaluate(() => { document.querySelectorAll('.key[data-k]').forEach(k=>k.classList.remove('lit')); scrollTo(0,0); });
   await p.screenshot({path: path.join(out, 'og-image.png')});
