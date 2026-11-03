@@ -147,7 +147,7 @@ header.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;backgroun
 .mark svg.line{width:26px;height:26px;stroke-width:3.2}
 .mark.fav{background:#FFFFFF;border-color:var(--line);color:hsl(var(--mh) 65% 42%)!important}
 .mark.fav img{position:absolute;inset:0;margin:auto;width:24px;height:24px;background:#FFFFFF}
-.card:hover .mark{transform:scale(1.1) rotate(-5deg);box-shadow:0 6px 18px var(--glow)}
+.card:hover .mark{transform:scale(1.04)}
 .mark.sm{width:30px;height:30px;border-radius:8px;font-size:13px}
 .mark.sm svg{width:16px;height:16px}.mark.sm svg.line{width:19px;height:19px}.mark.sm img{width:18px;height:18px}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .mark{color:hsl(var(--mh) 85% 70%)}}
@@ -225,7 +225,6 @@ pre.cmd{margin:0;background:var(--sunk);border:1px solid var(--line);border-radi
 </style>
 
 <canvas id="fx" aria-hidden="true"></canvas>
-<div class="ring" id="ring" aria-hidden="true"></div>
 <a class="skip" href="#main">Skip to the tools</a>
 
 <header class="nav">
@@ -518,7 +517,6 @@ $('#shelves').addEventListener('pointermove', e => {
   if (!c || e.pointerType !== 'mouse') return;
   const r = c.getBoundingClientRect(), px = (e.clientX-r.left)/r.width, py = (e.clientY-r.top)/r.height;
   c.style.setProperty('--mx', (e.clientX-r.left)+'px'); c.style.setProperty('--my', (e.clientY-r.top)+'px');
-  if (!RM) { c.style.setProperty('--ry', ((px-.5)*7).toFixed(2)+'deg'); c.style.setProperty('--rx', ((.5-py)*7).toFixed(2)+'deg'); }
 });
 $('#shelves').addEventListener('pointerleave', () => { untilt(tilted); tilted = null; });
 ['input','change'].forEach(ev => ['#q','#free','#wg'].forEach(s => $(s).addEventListener(ev, () => { render(); watchShelves(); })));
@@ -574,26 +572,23 @@ $('#theme').onclick = () => {
 };
 
 // ---- reactive layer ----
-// dot field: a fixed grid of dots that light up in the current RGB hue around the cursor and ripple on every action
+// dot field: a quiet grid of dots that softly light up near the cursor
 const root = document.documentElement, cv = $('#fx'), cx = cv.getContext('2d');
-let W=0, H=0, dpr=1, mx=-999, my=-999, ripples=[], raf=0;
+let W=0, H=0, dpr=1, mx=-999, my=-999, raf=0;
 function size(){ dpr=Math.min(window.devicePixelRatio||1,2); W=innerWidth; H=innerHeight; cv.width=W*dpr; cv.height=H*dpr; kick(); }
 function kick(){ if (!raf) raf = requestAnimationFrame(draw); }
 function draw(t){
   raf = 0;
   const cs = getComputedStyle(root), line = cs.getPropertyValue('--line').trim(), h = +cs.getPropertyValue('--h') || 262, G = 24;
   cx.setTransform(dpr,0,0,dpr,0,0); cx.clearRect(0,0,W,H);
-  ripples = ripples.filter(r => t - r.t < 1500);
   const oy = -((scrollY*0.35) % G);
   for (let y = oy; y < H + G; y += G) for (let x = G/2; x < W; x += G) {
-    let k = 0; const d = Math.hypot(x-mx, y-my); if (d < 170) k = 1 - d/170;
-    for (const r of ripples) { const age = t - r.t, rad = age*0.55, dd = Math.abs(Math.hypot(x-r.x, y-r.y) - rad); if (dd < 34) k = Math.max(k, (1-dd/34)*(1-age/1500)); }
-    if (k > 0.02) { cx.fillStyle = 'hsl('+((h + (x+y)*0.06)%360)+' 92% 60% / '+(0.25+0.75*k)+')'; cx.beginPath(); cx.arc(x, y, 1.1 + k*2.8, 0, 6.3); cx.fill(); }
+    let k = 0; const d = Math.hypot(x-mx, y-my); if (d < 120) k = 1 - d/120;
+    if (k > 0.02) { cx.fillStyle = 'hsl('+h+' 85% 60% / '+(0.15+0.55*k)+')'; cx.beginPath(); cx.arc(x, y, 1 + k*0.9, 0, 6.3); cx.fill(); }
     else { cx.fillStyle = line; cx.fillRect(x-1, y-1, 2, 2); }
   }
-  if (ripples.length) kick();
 }
-function ripple(x, y){ if (RM) return; ripples.push({x, y, t: performance.now()}); kick(); }
+function ripple(){}
 addEventListener('resize', size); addEventListener('scroll', kick, {passive:true});
 addEventListener('pointermove', e => { if (e.pointerType === 'mouse') { mx = e.clientX; my = e.clientY; kick(); } }, {passive:true});
 document.addEventListener('pointerleave', () => { mx = my = -999; kick(); });
@@ -601,34 +596,7 @@ new MutationObserver(kick).observe(root, {attributes:true, attributeFilter:['dat
 matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', kick);
 size();
 
-// cursor ring that grows over anything clickable
-const ring = $('#ring');
-if (matchMedia('(pointer:fine)').matches) {
-  addEventListener('pointermove', e => {
-    ring.classList.add('on'); ring.style.transform = 'translate('+e.clientX+'px,'+e.clientY+'px)';
-    ring.classList.toggle('big', !!e.target.closest('a,button,label,input'));
-  }, {passive:true});
-  addEventListener('pointerdown', () => ring.classList.add('down'));
-  addEventListener('pointerup', () => ring.classList.remove('down'));
-  document.addEventListener('pointerleave', () => ring.classList.remove('on'));
-}
-
-// sparks that fly from the button you pressed into the kit tray
-function burst(from, n){
-  const r = from.getBoundingClientRect(), sx = r.left + r.width/2, sy = r.top + r.height/2;
-  ripple(sx, sy);
-  if (RM || !from.animate) return;
-  const tx = innerWidth/2 - 40, ty = innerHeight - 40;
-  for (let i = 0; i < Math.min(n, 12); i++) {
-    const s = document.createElement('i'); s.className = 'fly'; document.body.appendChild(s);
-    const mx2 = (sx + tx)/2 + (Math.random()-.5)*240, my2 = Math.min(sy, ty) - 80 - Math.random()*120;
-    s.animate([
-      {transform:'translate('+sx+'px,'+sy+'px) scale(1)'},
-      {transform:'translate('+mx2+'px,'+my2+'px) scale(1.3)', offset:.45},
-      {transform:'translate('+tx+'px,'+ty+'px) scale(.4)', opacity:.2}
-    ], {duration: 650 + i*45, easing:'cubic-bezier(.5,0,.3,1)'}).onfinish = () => s.remove();
-  }
-}
+function burst(){}
 
 // nav follows the shelf you're reading
 let io;
