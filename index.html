@@ -83,7 +83,15 @@ header.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;backgroun
 .nav .wrap{display:flex;align-items:center;gap:20px;padding-block:12px}
 .brand{font-family:var(--f-display);font-weight:800;font-size:19px;letter-spacing:-.02em;text-decoration:none;display:flex;align-items:center;gap:8px}
 .brand i{width:12px;height:12px;border-radius:3px;background:var(--accent);box-shadow:0 0 12px var(--glow);transition:background .4s}
-.cats{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;flex:1;min-width:0;mask-image:linear-gradient(90deg,#000 92%,transparent)}
+.catwrap{flex:1;min-width:0;display:flex;align-items:center;gap:4px}
+.cats{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;flex:1;min-width:0;scroll-behavior:smooth;cursor:grab;
+  mask-image:linear-gradient(90deg,transparent 0,#000 var(--fl,0px),#000 calc(100% - var(--fr,0px)),transparent 100%)}
+.cats.drag{cursor:grabbing;scroll-behavior:auto}.cats.drag a{pointer-events:none}
+.arrow{flex:none;width:28px;height:28px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;display:grid;place-items:center;transition:opacity .2s}
+.arrow:hover{border-color:var(--muted)}
+.arrow[disabled]{opacity:.3;cursor:default}
+.arrow svg{width:14px;height:14px}
+@media (pointer:coarse){.arrow{display:none!important}}
 .cats::-webkit-scrollbar{display:none}
 .cats a{text-decoration:none;font-size:13px;color:var(--muted);padding:6px 10px;border-radius:999px;white-space:nowrap;display:inline-flex;gap:6px;align-items:center}
 .cats a:hover{color:var(--ink);background:var(--sunk)}
@@ -297,7 +305,7 @@ pre.cmd{margin:0;background:var(--sunk);border:1px solid var(--line);border-radi
 <header class="nav">
   <div class="wrap">
     <a class="brand" href="#top"><i></i>gamerkit</a>
-    <nav class="cats" id="cats" aria-label="Categories"><a href="#launchers"><span class="roll"><span>Game launchers</span><span>Game launchers</span></span><sup>14</sup></a><a href="#drivers"><span class="roll"><span>GPU &amp; chipset drivers</span><span>GPU &amp; chipset drivers</span></span><sup>6</sup></a><a href="#chat"><span class="roll"><span>Voice &amp; chat</span><span>Voice &amp; chat</span></span><sup>3</sup></a><a href="#perf"><span class="roll"><span>Tuning &amp; monitoring</span><span>Tuning &amp; monitoring</span></span><sup>9</sup></a><a href="#bench"><span class="roll"><span>Benchmarks &amp; stress tests</span><span>Benchmarks &amp; stress tests</span></span><sup>6</sup></a><a href="#capture"><span class="roll"><span>Streaming &amp; capture</span><span>Streaming &amp; capture</span></span><sup>9</sup></a><a href="#peripherals"><span class="roll"><span>Peripherals &amp; RGB</span><span>Peripherals &amp; RGB</span></span><sup>9</sup></a><a href="#mods"><span class="roll"><span>Mods &amp; extras</span><span>Mods &amp; extras</span></span><sup>6</sup></a><a href="#utils"><span class="roll"><span>Everyday essentials</span><span>Everyday essentials</span></span><sup>12</sup></a></nav>
+    <div class="catwrap"><button class="arrow" id="catL" aria-label="Scroll categories left"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg></button><nav class="cats" id="cats" aria-label="Categories"><a href="#launchers"><span class="roll"><span>Game launchers</span><span>Game launchers</span></span><sup>14</sup></a><a href="#drivers"><span class="roll"><span>GPU &amp; chipset drivers</span><span>GPU &amp; chipset drivers</span></span><sup>6</sup></a><a href="#chat"><span class="roll"><span>Voice &amp; chat</span><span>Voice &amp; chat</span></span><sup>3</sup></a><a href="#perf"><span class="roll"><span>Tuning &amp; monitoring</span><span>Tuning &amp; monitoring</span></span><sup>9</sup></a><a href="#bench"><span class="roll"><span>Benchmarks &amp; stress tests</span><span>Benchmarks &amp; stress tests</span></span><sup>6</sup></a><a href="#capture"><span class="roll"><span>Streaming &amp; capture</span><span>Streaming &amp; capture</span></span><sup>9</sup></a><a href="#peripherals"><span class="roll"><span>Peripherals &amp; RGB</span><span>Peripherals &amp; RGB</span></span><sup>9</sup></a><a href="#mods"><span class="roll"><span>Mods &amp; extras</span><span>Mods &amp; extras</span></span><sup>6</sup></a><a href="#utils"><span class="roll"><span>Everyday essentials</span><span>Everyday essentials</span></span><sup>12</sup></a></nav><button class="arrow" id="catR" aria-label="Scroll categories right"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg></button></div>
     <button class="theme" id="theme" aria-label="Switch light or dark theme"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 2a6 6 0 0 1 0 12z" fill="currentColor"/></svg></button>
   </div>
 </header>
@@ -714,7 +722,6 @@ function watchShelves(){
     if (!en.isIntersecting) return;
     document.querySelectorAll('#cats a').forEach(a => {
       const on = a.getAttribute('href') === '#'+en.target.id; a.classList.toggle('cur', on);
-      if (on) { const c = $('#cats'); c.scrollTo({left: a.offsetLeft - c.offsetWidth/2 + a.offsetWidth/2, behavior: RM?'auto':'smooth'}); }
     });
   }), {rootMargin:'-35% 0px -60% 0px'});
   document.querySelectorAll('.shelf').forEach(s => io.observe(s));
@@ -841,6 +848,25 @@ let dots=0, dotT; document.querySelector('.brand i').addEventListener('click', e
   e.preventDefault(); dots++; clearTimeout(dotT); dotT=setTimeout(()=>dots=0, 1200);
   if (dots===5) { dots=0; toast('Achievement unlocked: Curious'); document.querySelectorAll('.key[data-k]').forEach((k,i)=>setTimeout(()=>press(k), i*80)); }
 });
+
+// category bar: arrows, mouse wheel and drag all scroll it sideways
+const cats = $('#cats');
+function catEdges(){
+  const max = cats.scrollWidth - cats.clientWidth, x = cats.scrollLeft, has = max > 2;
+  $('#catL').hidden = $('#catR').hidden = !has;
+  $('#catL').disabled = x <= 2; $('#catR').disabled = x >= max - 2;
+  cats.style.setProperty('--fl', x > 2 ? '28px' : '0px'); cats.style.setProperty('--fr', x < max - 2 ? '28px' : '0px');
+}
+$('#catL').onclick = () => cats.scrollBy({left: -cats.clientWidth*0.7});
+$('#catR').onclick = () => cats.scrollBy({left: cats.clientWidth*0.7});
+cats.addEventListener('scroll', catEdges, {passive:true}); addEventListener('resize', catEdges);
+cats.addEventListener('wheel', e => { if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && cats.scrollWidth > cats.clientWidth) { e.preventDefault(); cats.scrollLeft += e.deltaY; } }, {passive:false});
+let dragX = null, dragS = 0, moved = false;
+cats.addEventListener('pointerdown', e => { if (e.pointerType !== 'mouse') return; dragX = e.clientX; dragS = cats.scrollLeft; moved = false; });
+addEventListener('pointermove', e => { if (dragX === null) return; const dx = e.clientX - dragX; if (Math.abs(dx) > 4) { moved = true; cats.classList.add('drag'); cats.scrollLeft = dragS - dx; } });
+addEventListener('pointerup', () => { dragX = null; setTimeout(()=>cats.classList.remove('drag'), 0); });
+cats.addEventListener('click', e => { if (moved) { e.preventDefault(); moved = false; } }, true);
+catEdges();
 
 render(); sync(false); watchShelves();
 // opening moment: the keycaps light up left to right once
