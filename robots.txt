@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://arnavmv07.github.io/GamerKit/sitemap.xml
