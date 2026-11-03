@@ -35,8 +35,19 @@
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html{scroll-behavior:smooth;scroll-padding-top:84px}
-body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55;
-  background-image:radial-gradient(var(--line) 1px, transparent 1px);background-size:22px 22px;background-attachment:fixed}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55;position:relative;z-index:0}
+#fx{position:fixed;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none}
+.ring{position:fixed;left:0;top:0;width:34px;height:34px;margin:-17px 0 0 -17px;border:1.5px solid var(--accent);border-radius:50%;pointer-events:none;z-index:60;opacity:0;
+  transition:width .2s,height .2s,margin .2s,background-color .2s,opacity .2s}
+.ring.on{opacity:1}.ring.big{width:56px;height:56px;margin:-28px 0 0 -28px;background-color:var(--glow)}
+.ring.down{width:24px;height:24px;margin:-12px 0 0 -12px}
+@media (pointer:coarse){.ring{display:none}}
+.fly{position:fixed;left:0;top:0;z-index:70;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;background:var(--accent);box-shadow:0 0 14px var(--glow);pointer-events:none}
+.meter{display:flex;gap:3px;align-items:center}
+.meter i{width:7px;height:16px;border-radius:2px;background:color-mix(in srgb,var(--bg) 22%,transparent);transition:background .3s,transform .3s}
+.meter i.f{background:var(--accent);box-shadow:0 0 8px var(--glow)}
+.cats a.cur{color:var(--ink);background:var(--sunk)}
+.cats a.cur sup{color:var(--accent)}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
 a{color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
@@ -106,10 +117,11 @@ header.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;backgroun
 .shelf-head .addall{margin-left:auto;font:inherit;font-size:12.5px;background:none;border:0;color:var(--accent);cursor:pointer;padding:4px 0}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
 .card{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:grid;grid-template-rows:auto 1fr auto;gap:12px;overflow:hidden;
-  transition:transform .2s cubic-bezier(.2,.8,.2,1),border-color .2s,box-shadow .2s;isolation:isolate}
+  transform:perspective(900px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) translateY(var(--ty,0px));
+  transition:transform .25s cubic-bezier(.2,.8,.2,1),border-color .2s,box-shadow .2s;isolation:isolate}
 .card::before{content:"";position:absolute;inset:0;z-index:-1;opacity:0;transition:opacity .25s;
   background:radial-gradient(260px circle at var(--mx,50%) var(--my,50%),hsl(var(--h) 95% 60% / .14),transparent 65%)}
-.card:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}
+.card:hover{--ty:-3px;border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}
 .card:hover::before{opacity:1}
 .card.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 8px 28px var(--glow)}
 .top{display:flex;gap:12px;align-items:center;min-width:0}
@@ -188,6 +200,8 @@ pre.cmd{margin:0;background:var(--sunk);border:1px solid var(--line);border-radi
 @media (prefers-reduced-motion:reduce){*,*::before{transition:none!important;animation:none!important}html{scroll-behavior:auto}}
 </style>
 
+<canvas id="fx" aria-hidden="true"></canvas>
+<div class="ring" id="ring" aria-hidden="true"></div>
 <a class="skip" href="#main">Skip to the tools</a>
 
 <header class="nav">
@@ -239,6 +253,7 @@ pre.cmd{margin:0;background:var(--sunk);border:1px solid var(--line);border-radi
 </footer>
 
 <div class="tray hide" id="tray" role="region" aria-label="Your kit">
+  <span class="meter" id="meter" aria-hidden="true"></span>
   <span class="count" id="tcount"></span>
   <button id="open">Review &amp; install</button>
 </div>
@@ -292,12 +307,6 @@ const CATS = [
   ['amdchip','AMD Ryzen Chipset Drivers','AMD','https://www.amd.com/en/support/download/drivers.html','Power plans and core scheduling for Ryzen CPUs. Select your motherboard chipset.','',1],
   ['intel','Intel Driver & Support Assistant','Intel','https://www.intel.com/content/www/us/en/support/detect.html','Finds the right Arc / Iris graphics, Wi-Fi and chipset drivers.','Intel.IntelDriverAndSupportAssistant',1],
   ['ddu','Display Driver Uninstaller','Wagnardsoft','https://www.wagnardsoft.com/display-driver-uninstaller-ddu','Removes every trace of an old GPU driver before a clean install.','Wagnardsoft.DisplayDriverUninstaller',1],
- ]},
- {id:'runtimes', name:'Runtimes & libraries', blurb:'Games quietly depend on these. Installing them up front avoids missing-DLL errors.', tools:[
-  ['vcredist','Visual C++ Redistributable','Microsoft','https://learn.microsoft.com/cpp/windows/latest-supported-vc-redist','The fix for most “MSVCP140.dll was not found” errors. Get the x64 build.','Microsoft.VCRedist.2015+.x64',1],
-  ['directx','DirectX End-User Runtime','Microsoft','https://www.microsoft.com/download/details.aspx?id=35','Legacy DirectX 9–11 files that older games still look for.','Microsoft.DirectX',1],
-  ['dotnet','.NET Desktop Runtime 8','Microsoft','https://dotnet.microsoft.com/download/dotnet/8.0','Needed by many launchers, mod managers and overlay tools.','Microsoft.DotNet.DesktopRuntime.8',1],
-  ['java','Java (Temurin 21)','Eclipse Adoptium','https://adoptium.net/','Java runtime for modded Minecraft and third-party launchers.','EclipseAdoptium.Temurin.21.JRE',1],
  ]},
  {id:'chat', name:'Voice & chat', blurb:'Talk to your squad while you play.', tools:[
   ['discord','Discord','Discord','https://discord.com/download','Voice channels, screen share and communities for almost every game.','Discord.Discord',1],
@@ -369,7 +378,7 @@ const CATS = [
  ]},
 ];
 const PRESETS = [
-  {name:'Fresh install essentials', ids:['steam','epic','discord','vcredist','directx','dotnet','7zip','chrome','hwinfo','afterburner']},
+  {name:'Fresh install essentials', ids:['steam','epic','discord','7zip','chrome','spotify','vlc','hwinfo','cpuz','afterburner']},
   {name:'NVIDIA build', ids:['nvapp','ddu','afterburner','rtss','gpuz','nvbroadcast']},
   {name:'AMD build', ids:['amd','amdchip','ddu','afterburner','gpuz']},
   {name:'Streamer setup', ids:['obs','streamlabs','voicemeeter','sharex','medal','discord']},
@@ -381,6 +390,7 @@ const ALL = Object.values(T);
 const host = u => new URL(u).hostname.replace(/^www\./,'');
 const hueOf = s => [...s].reduce((a,c)=>(a*31+c.charCodeAt(0))%360,7);
 const $ = s => document.querySelector(s);
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
 // kit state
@@ -406,6 +416,7 @@ function press(b){
   document.documentElement.style.setProperty('--h', Math.round(hue));
   document.querySelectorAll('.key[data-k]').forEach((k,i)=>k.style.setProperty('--kh', Math.round((hue + i*24)%360)));
   b.classList.add('down','lit'); setTimeout(()=>b.classList.remove('down'),140); setTimeout(()=>b.classList.remove('lit'),900);
+  const r=b.getBoundingClientRect(); ripple(r.left+r.width/2, r.top+r.height/2);
 }
 document.addEventListener('keydown', e => {
   if (e.target.closest('input,textarea') || e.metaKey || e.ctrlKey || e.altKey) return;
@@ -420,7 +431,7 @@ $('#cats').innerHTML = CATS.map(c => '<a href="#'+c.id+'"><span class="roll"><sp
 const wgCount = ALL.filter(t=>t.wg).length;
 $('#meta').innerHTML = '<span><b>'+ALL.length+'</b> tools</span><span><b>'+CATS.length+'</b> categories</span><span><b>'+wgCount+'</b> install with winget</span><span><b>0</b> files rehosted</span>';
 $('#presets').innerHTML = PRESETS.map((p,i)=>'<button class="preset" data-p="'+i+'">+ '+p.name+' <small>'+p.ids.length+'</small></button>').join('');
-$('#presets').addEventListener('click', e => { const b=e.target.closest('.preset'); if(!b) return; PRESETS[b.dataset.p].ids.forEach(i=>kit.add(i)); sync(true); });
+$('#presets').addEventListener('click', e => { const b=e.target.closest('.preset'); if(!b) return; PRESETS[b.dataset.p].ids.forEach(i=>kit.add(i)); sync(true); burst(b, PRESETS[b.dataset.p].ids.length); });
 
 // shelves
 function card(t){
@@ -443,17 +454,23 @@ function render(){
 }
 $('#shelves').addEventListener('click', e => {
   const all = e.target.closest('.addall');
-  if (all) { e.currentTarget.querySelectorAll('#'+all.dataset.cat+' .card').forEach(c=>kit.add(c.dataset.id)); sync(true); return; }
+  if (all) { const cs=e.currentTarget.querySelectorAll('#'+all.dataset.cat+' .card'); cs.forEach(c=>kit.add(c.dataset.id)); sync(true); burst(all, cs.length); return; }
   const add = e.target.closest('.add'); if (!add) return;
   const id = add.closest('.card').dataset.id;
-  kit.has(id) ? kit.delete(id) : kit.add(id); sync(kit.has(id));
+  kit.has(id) ? kit.delete(id) : kit.add(id); sync(kit.has(id)); if (kit.has(id)) burst(add, 1);
 });
+let tilted = null;
+const untilt = c => { if (c) { c.style.setProperty('--rx','0deg'); c.style.setProperty('--ry','0deg'); } };
 $('#shelves').addEventListener('pointermove', e => {
-  const c = e.target.closest('.card'); if (!c) return;
-  const r = c.getBoundingClientRect();
+  const c = e.target.closest('.card');
+  if (c !== tilted) { untilt(tilted); tilted = c; }
+  if (!c || e.pointerType !== 'mouse') return;
+  const r = c.getBoundingClientRect(), px = (e.clientX-r.left)/r.width, py = (e.clientY-r.top)/r.height;
   c.style.setProperty('--mx', (e.clientX-r.left)+'px'); c.style.setProperty('--my', (e.clientY-r.top)+'px');
+  if (!RM) { c.style.setProperty('--ry', ((px-.5)*7).toFixed(2)+'deg'); c.style.setProperty('--rx', ((.5-py)*7).toFixed(2)+'deg'); }
 });
-['input','change'].forEach(ev => ['#q','#free','#wg'].forEach(s => $(s).addEventListener(ev, render)));
+$('#shelves').addEventListener('pointerleave', () => { untilt(tilted); tilted = null; });
+['input','change'].forEach(ev => ['#q','#free','#wg'].forEach(s => $(s).addEventListener(ev, () => { render(); watchShelves(); })));
 
 // kit tray + drawer
 function sync(bump){
@@ -466,6 +483,8 @@ function sync(bump){
   const n = kit.size, tray = $('#tray');
   tray.classList.toggle('hide', n===0);
   $('#tcount').innerHTML = 'Your kit · <b>'+n+'</b> tool'+(n===1?'':'s');
+  const covered = new Set([...kit].map(i=>T[i].cat));
+  $('#meter').innerHTML = CATS.map(c=>'<i class="'+(covered.has(c.id)?'f':'')+'" title="'+c.name+'"></i>').join('');
   if (bump && n) { tray.classList.remove('bump'); void tray.offsetWidth; tray.classList.add('bump'); }
   if (!$('#drawer').hidden) fillDrawer();
 }
@@ -503,7 +522,81 @@ $('#theme').onclick = () => {
   r.dataset.theme = cur==='dark'?'light':'dark';
 };
 
-render(); sync(false);
+// ---- reactive layer ----
+// dot field: a fixed grid of dots that light up in the current RGB hue around the cursor and ripple on every action
+const root = document.documentElement, cv = $('#fx'), cx = cv.getContext('2d');
+let W=0, H=0, dpr=1, mx=-999, my=-999, ripples=[], raf=0;
+function size(){ dpr=Math.min(window.devicePixelRatio||1,2); W=innerWidth; H=innerHeight; cv.width=W*dpr; cv.height=H*dpr; kick(); }
+function kick(){ if (!raf) raf = requestAnimationFrame(draw); }
+function draw(t){
+  raf = 0;
+  const cs = getComputedStyle(root), line = cs.getPropertyValue('--line').trim(), h = +cs.getPropertyValue('--h') || 262, G = 24;
+  cx.setTransform(dpr,0,0,dpr,0,0); cx.clearRect(0,0,W,H);
+  ripples = ripples.filter(r => t - r.t < 1500);
+  const oy = -((scrollY*0.35) % G);
+  for (let y = oy; y < H + G; y += G) for (let x = G/2; x < W; x += G) {
+    let k = 0; const d = Math.hypot(x-mx, y-my); if (d < 170) k = 1 - d/170;
+    for (const r of ripples) { const age = t - r.t, rad = age*0.55, dd = Math.abs(Math.hypot(x-r.x, y-r.y) - rad); if (dd < 34) k = Math.max(k, (1-dd/34)*(1-age/1500)); }
+    if (k > 0.02) { cx.fillStyle = 'hsl('+((h + (x+y)*0.06)%360)+' 92% 60% / '+(0.25+0.75*k)+')'; cx.beginPath(); cx.arc(x, y, 1.1 + k*2.8, 0, 6.3); cx.fill(); }
+    else { cx.fillStyle = line; cx.fillRect(x-1, y-1, 2, 2); }
+  }
+  if (ripples.length) kick();
+}
+function ripple(x, y){ if (RM) return; ripples.push({x, y, t: performance.now()}); kick(); }
+addEventListener('resize', size); addEventListener('scroll', kick, {passive:true});
+addEventListener('pointermove', e => { if (e.pointerType === 'mouse') { mx = e.clientX; my = e.clientY; kick(); } }, {passive:true});
+document.addEventListener('pointerleave', () => { mx = my = -999; kick(); });
+new MutationObserver(kick).observe(root, {attributes:true, attributeFilter:['data-theme','style']});
+matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', kick);
+size();
+
+// cursor ring that grows over anything clickable
+const ring = $('#ring');
+if (matchMedia('(pointer:fine)').matches) {
+  addEventListener('pointermove', e => {
+    ring.classList.add('on'); ring.style.transform = 'translate('+e.clientX+'px,'+e.clientY+'px)';
+    ring.classList.toggle('big', !!e.target.closest('a,button,label,input'));
+  }, {passive:true});
+  addEventListener('pointerdown', () => ring.classList.add('down'));
+  addEventListener('pointerup', () => ring.classList.remove('down'));
+  document.addEventListener('pointerleave', () => ring.classList.remove('on'));
+}
+
+// sparks that fly from the button you pressed into the kit tray
+function burst(from, n){
+  const r = from.getBoundingClientRect(), sx = r.left + r.width/2, sy = r.top + r.height/2;
+  ripple(sx, sy);
+  if (RM || !from.animate) return;
+  const tx = innerWidth/2 - 40, ty = innerHeight - 40;
+  for (let i = 0; i < Math.min(n, 12); i++) {
+    const s = document.createElement('i'); s.className = 'fly'; document.body.appendChild(s);
+    const mx2 = (sx + tx)/2 + (Math.random()-.5)*240, my2 = Math.min(sy, ty) - 80 - Math.random()*120;
+    s.animate([
+      {transform:'translate('+sx+'px,'+sy+'px) scale(1)'},
+      {transform:'translate('+mx2+'px,'+my2+'px) scale(1.3)', offset:.45},
+      {transform:'translate('+tx+'px,'+ty+'px) scale(.4)', opacity:.2}
+    ], {duration: 650 + i*45, easing:'cubic-bezier(.5,0,.3,1)'}).onfinish = () => s.remove();
+  }
+}
+
+// nav follows the shelf you're reading
+let io;
+function watchShelves(){
+  if (io) io.disconnect();
+  if (!('IntersectionObserver' in window)) return;
+  io = new IntersectionObserver(es => es.forEach(en => {
+    if (!en.isIntersecting) return;
+    document.querySelectorAll('#cats a').forEach(a => {
+      const on = a.getAttribute('href') === '#'+en.target.id; a.classList.toggle('cur', on);
+      if (on) { const c = $('#cats'); c.scrollTo({left: a.offsetLeft - c.offsetWidth/2 + a.offsetWidth/2, behavior: RM?'auto':'smooth'}); }
+    });
+  }), {rootMargin:'-35% 0px -60% 0px'});
+  document.querySelectorAll('.shelf').forEach(s => io.observe(s));
+}
+
+render(); sync(false); watchShelves();
+// opening moment: the keycaps light up left to right once
+if (!RM) document.querySelectorAll('.key[data-k]').forEach((k,i) => setTimeout(() => { k.classList.add('lit'); setTimeout(()=>k.classList.remove('lit'), 700); }, 250 + i*90));
 })();
 </script>
 </body></html>

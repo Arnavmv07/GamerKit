@@ -1,12 +1,12 @@
 # GamerKit
 
-A one-stop download page for setting up a new gaming PC. It lists 78 launchers, drivers, runtimes and tools in 10 categories, and each Download button opens the developer's official download page. GamerKit hosts no files.
+A one-stop download page for setting up a new gaming PC. It lists 74 launchers, drivers and tools in 9 categories, and each Download button opens the developer's official download page. GamerKit hosts no files.
 
 ## Features
 
 - **Kit builder**: add tools one at a time, a whole category, or a preset (Fresh install essentials, NVIDIA build, AMD build, Streamer setup, Stability testing). Your kit is saved in your browser.
 - **One-command install**: the kit gives a PowerShell command that installs every supported tool with [winget](https://learn.microsoft.com/windows/package-manager/winget/), which is built into Windows 10 and 11. Tools without a winget package keep their direct download link.
-- **Reactive design**: the GAMERKIT keycaps change the site's accent colour when you click them or type the letters. Cards highlight where your cursor is. Light and dark themes.
+- **Reactive design**: the GAMERKIT keycaps change the site's RGB accent colour when you click them or type the letters. A dot field behind the page lights up around your cursor and ripples whenever you press something. Cards tilt toward the cursor, added tools fly into the kit tray, the tray's meter shows which categories you've covered, and the nav follows the section you're reading. Light and dark themes, and motion is reduced for people who turn it off in their OS.
 
 ## Run it
 
