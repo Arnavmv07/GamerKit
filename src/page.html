@@ -135,19 +135,6 @@ header.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;backgroun
 .shelf > p{margin:-8px 0 16px;color:var(--muted);max-width:65ch}
 .shelf-head .addall{margin-left:auto;font:inherit;font-size:12.5px;background:none;border:0;color:var(--muted);cursor:pointer;padding:4px 0;text-decoration:underline;text-underline-offset:3px}
 .shelf-head .addall:hover{color:var(--ink)}
-.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:var(--bg)}
-.seg button{font:inherit;font-size:13px;border:0;background:none;color:var(--muted);padding:5px 12px;border-radius:999px;cursor:pointer}
-.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgb(0 0 0 / .08)}
-.checks{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr));gap:2px 14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px}
-.chk{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:8px;cursor:pointer;min-width:0;user-select:none}
-.chk:hover{background:var(--sunk)}
-.chk input{width:17px;height:17px;flex:none;accent-color:var(--ink);margin:0;cursor:pointer}
-.chk .nm{flex:1;min-width:0;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.chk .ext{flex:none;color:var(--muted);text-decoration:none;font-size:13px;padding:2px 4px;border-radius:4px;opacity:0;transition:opacity .15s}
-.chk:hover .ext,.chk .ext:focus-visible{opacity:1}
-.chk .ext:hover{color:var(--ink)}
-@media (pointer:coarse){.chk .ext{opacity:1}}
-.tray .t2{background:transparent;color:var(--bg);border:1px solid color-mix(in srgb,var(--bg) 35%,transparent)}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
 .card{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:grid;grid-template-rows:auto 1fr auto;gap:12px;overflow:hidden;
   transform:perspective(900px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) translateY(var(--ty,0px));
@@ -321,15 +308,14 @@ pre.cmd{margin:0;background:var(--sunk);border:1px solid var(--line);border-radi
         <label class="search"><span class="skip">Search tools</span><input id="q" type="search" placeholder="Search Steam, drivers, RGB, benchmark…" autocomplete="off"><kbd>/</kbd></label>
         <label class="toggle"><input type="checkbox" id="free"> Free only</label>
         <label class="toggle"><input type="checkbox" id="wg"> Installs with winget</label>
-        <div class="seg" role="group" aria-label="Layout"><button id="v-list" data-v="list">Checklist</button><button id="v-cards" data-v="cards">Cards</button></div>
       </div>
     </div>
 
     <div id="shelves"></div>
 
     <div class="how" aria-label="How it works">
-      <div><b>step 1</b><h3>Pick your apps</h3><p>Tick everything you want, or start from a preset. No account needed.</p></div>
-      <div><b>step 2</b><h3>Get your GamerKit</h3><p>One button downloads a small zip made for your picks, with one installer inside.</p></div>
+      <div><b>step 1</b><h3>Build your kit</h3><p>Tap + on any tool or start from a preset. Your kit is saved in this browser.</p></div>
+      <div><b>step 2</b><h3>Download your kit</h3><p>Open your kit and download it as a zip, or use Download everything at the bottom. One installer is inside.</p></div>
       <div><b>step 3</b><h3>Run it and walk away</h3><p>Windows asks for permission once. Then every app installs silently at its latest version, already up-to-date apps are skipped, and you never click Next. Run it again later to update everything.</p></div>
     </div>
 
@@ -389,8 +375,7 @@ pre.cmd{margin:0;background:var(--sunk);border:1px solid var(--line);border-radi
 <div class="tray hide" id="tray" role="region" aria-label="Your kit">
   <span class="meter" id="meter" aria-hidden="true"></span>
   <span class="count" id="tcount"></span>
-  <button class="t2" id="open">Review</button>
-  <button id="get">Get your GamerKit</button>
+  <button id="open">Review &amp; install</button>
 </div>
 
 <div class="scrim" id="scrim" hidden></div>
@@ -599,32 +584,16 @@ function card(t){
     '<div class="actions"><a class="dl" href="'+t.url+'" target="_blank" rel="noopener noreferrer">'+DL+' Download</a>'+
     '<button class="add" aria-pressed="'+kit.has(t.id)+'" aria-label="'+(kit.has(t.id)?'Remove ':'Add ')+esc(t.name)+(kit.has(t.id)?' from':' to')+' your kit">'+PLUS+'</button></div></div></article>';
 }
-let view = 'list'; try { view = localStorage.getItem('gk-view') || 'list'; } catch(e){}
-function check(t){
-  return '<label class="chk"><input type="checkbox" data-id="'+t.id+'"'+(kit.has(t.id)?' checked':'')+'>'+logo(t,'sm')+'<span class="nm">'+esc(t.name)+'</span>'+
-    '<a class="ext" href="'+t.url+'" target="_blank" rel="noopener noreferrer" title="Official download page" aria-label="'+esc(t.name)+' official download page">↗</a></label>';
-}
-function setView(v){
-  view = v; try { localStorage.setItem('gk-view', v); } catch(e){}
-  document.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === v));
-  render(); watchShelves();
-}
-document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => setView(b.dataset.v)));
 function render(){
-  document.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === view));
   const q = $('#q').value.trim().toLowerCase(), fo = $('#free').checked, wo = $('#wg').checked;
   let shown = 0;
   $('#shelves').innerHTML = CATS.map(c => {
     const list = c.tools.map(t=>T[t[0]]).filter(t => (!q || (t.name+' '+t.vendor+' '+t.desc+' '+c.name).toLowerCase().includes(q)) && (!fo||t.free) && (!wo||t.wg));
     shown += list.length;
     if (!list.length) return '';
-    return '<section class="shelf" id="'+c.id+'"><div class="shelf-head"><h2>'+c.name+'</h2><span class="n">'+list.length+(list.length===c.tools.length?'':' of '+c.tools.length)+'</span><button class="addall" data-cat="'+c.id+'">Add all to kit</button></div><p>'+c.blurb+'</p>'+(view==='list' ? '<div class="checks">'+list.map(check).join('')+'</div>' : '<div class="grid">'+list.map(card).join('')+'</div>')+'</section>';
+    return '<section class="shelf" id="'+c.id+'"><div class="shelf-head"><h2>'+c.name+'</h2><span class="n">'+list.length+(list.length===c.tools.length?'':' of '+c.tools.length)+'</span><button class="addall" data-cat="'+c.id+'">Add all to kit</button></div><p>'+c.blurb+'</p><div class="grid">'+list.map(card).join('')+'</div></section>';
   }).join('') || '<p class="empty">No tools match “'+esc(q)+'”. Try a vendor name or a word like “driver”.</p>';
 }
-$('#shelves').addEventListener('change', e => {
-  const c = e.target.closest('.chk input'); if (!c) return;
-  c.checked ? kit.add(c.dataset.id) : kit.delete(c.dataset.id); sync(c.checked);
-});
 $('#shelves').addEventListener('click', e => {
   const all = e.target.closest('.addall');
   if (all) { const cs=e.currentTarget.querySelectorAll('#'+all.dataset.cat+' [data-id]'); cs.forEach(c=>kit.add(c.dataset.id)); sync(true); return; }
@@ -647,7 +616,6 @@ $('#shelves').addEventListener('pointerleave', () => { untilt(tilted); tilted = 
 // kit tray + drawer
 function sync(bump){
   save();
-  document.querySelectorAll('.chk input').forEach(c => { c.checked = kit.has(c.dataset.id); });
   document.querySelectorAll('.card').forEach(c => {
     const on = kit.has(c.dataset.id), t = T[c.dataset.id], b = c.querySelector('.add');
     c.classList.toggle('on', on); b.setAttribute('aria-pressed', on);
@@ -807,7 +775,6 @@ $('#all').innerHTML = DL + ' Download everything (.zip)';
 $('#allnote').textContent = 'All '+ALL.length+' tools in one zip. Run it to install '+wgCount+' of them in one go, or to download their latest official installers into a folder. The other '+(ALL.length-wgCount)+' come as links to their official download pages.';
 $('#all').onclick = () => makeZip(ALL, 'everything', $('#all'));
 $('#zipkit').onclick = () => kit.size && makeZip([...kit].map(i=>T[i]), kit.size+'-apps', $('#zipkit'));
-$('#get').onclick = () => kit.size && makeZip([...kit].map(i=>T[i]), kit.size+'-apps', $('#get'));
 
 // ---- warm-up games ----
 const store = { get(k){ try { return JSON.parse(localStorage.getItem(k)); } catch(e){ return null; } }, set(k,v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} } };
