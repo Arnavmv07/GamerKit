@@ -3,6 +3,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<script>document.documentElement.classList.add('js')</script>
 <style>
 /* Layout: a keyboard-row hero, then a single column of category shelves; your kit lives in a tray at the bottom edge. */
 :root{
@@ -273,7 +274,142 @@ pre.cmd{margin:0;background:var(--sunk);border:1px solid var(--line);border-radi
   .tray button{padding:9px 12px}
   .everything{padding:22px}
 }
-@media (prefers-reduced-motion:reduce){*,*::before{transition:none!important;animation:none!important}html{scroll-behavior:auto}}
+
+/* ---- v3: interactive layer ---- */
+.prog{position:absolute;left:0;right:0;bottom:-1px;height:2px;background:linear-gradient(90deg,hsl(var(--h) 90% 60%),hsl(calc(var(--h) + 60) 90% 60%));transform-origin:0 50%;transform:scaleX(var(--p,0));pointer-events:none}
+.cats{position:relative}
+.cats a{transition:color .2s,background-color .2s}
+.cats a.cur{color:var(--ink);background:var(--sunk)}
+.cats a.cur sup{color:var(--accent)}
+
+/* hero: wordmark and pitch on the left, a live installer preview on the right */
+.hero{grid-template-columns:minmax(0,1fr);align-items:center;gap:40px}
+.hero-l{display:grid;gap:24px;min-width:0;container-type:inline-size}
+.hero-l .key b{width:clamp(30px,calc((100cqi - 72px) / 8.4),68px);font-size:clamp(17px,calc((100cqi - 72px) / 15),38px)}
+.hero-l .key.gap{width:clamp(4px,2cqi,24px)}
+@media (min-width:1040px){.hero{grid-template-columns:minmax(0,1fr) minmax(360px,430px)}}
+.cta{display:flex;flex-wrap:wrap;gap:14px 20px;align-items:center}
+.cta .big{text-decoration:none}
+.link{color:var(--ink);font-weight:500;font-size:14.5px;text-decoration:none;display:inline-flex;gap:6px;align-items:center;border-bottom:1px solid var(--line);padding-bottom:2px;transition:border-color .2s,gap .2s}
+.link:hover{border-color:var(--accent);gap:10px}
+.meta b{font-variant-numeric:tabular-nums}
+
+.term{position:relative;background:#0E1016;color:#D8DCE5;border-radius:16px;border:1px solid #232733;overflow:hidden;min-width:0;
+  box-shadow:0 0 0 1px hsl(var(--h) 90% 60% / .18),0 30px 70px -20px hsl(var(--h) 90% 45% / .45),0 18px 40px rgb(0 0 0 / .18)}
+.term::before{content:"";position:absolute;inset:-40% -20% auto auto;width:260px;height:260px;border-radius:50%;background:hsl(var(--h) 90% 60% / .16);filter:blur(50px);pointer-events:none}
+.term-bar{display:flex;align-items:center;gap:7px;padding:11px 14px;border-bottom:1px solid #1F232D;font-size:12px;color:#8D94A3}
+.term-bar i{width:10px;height:10px;border-radius:50%;background:#2A2F3B}
+.term-bar i:first-child{background:#FF5F57}.term-bar i:nth-child(2){background:#FEBC2E}.term-bar i:nth-child(3){background:#28C840}
+.term-bar span{margin-left:6px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.run{font:inherit;font-size:11.5px;font-weight:500;border:1px solid #2E3340;background:#171A22;color:#E8EAEF;border-radius:999px;padding:4px 11px;cursor:pointer;white-space:nowrap;transition:border-color .2s,background-color .2s}
+.run:hover{border-color:hsl(var(--h) 90% 66%);background:#1D2029}
+.run[disabled]{opacity:.5;cursor:default}
+.term-body{padding:12px 14px 6px;display:grid;gap:8px;font-size:12px;min-height:260px;align-content:start}
+.term-body .cmdline{color:#8D94A3;margin-bottom:2px}
+.term-body .cmdline b{color:hsl(var(--h) 90% 70%);font-weight:500}
+.tl{display:grid;grid-template-columns:auto minmax(0,1fr) 74px 84px;gap:10px;align-items:center}
+.tl .mark.sm{width:24px;height:24px;border-radius:7px}
+.tl .mark.sm svg{width:13px;height:13px}.tl .mark.sm svg.line{width:16px;height:16px}.tl .mark.sm img{width:15px;height:15px}
+.tl .tn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#E8EAEF}
+.tl .tb{height:6px;border-radius:99px;background:#1F232D;overflow:hidden}
+.tl .tb i{display:block;height:100%;width:0;border-radius:inherit;background:linear-gradient(90deg,hsl(var(--h) 90% 60%),hsl(calc(var(--h) + 50) 90% 62%));transition:width var(--d,.8s) cubic-bezier(.3,.6,.3,1)}
+.tl .ts{color:#6E7584;text-align:right;white-space:nowrap}
+.tl.busy .ts{color:#FEBC2E}.tl.ok .ts{color:#3DDC84}.tl.web .ts{color:hsl(var(--h) 90% 72%)}
+.tl.ok .tb i,.tl.web .tb i{width:100%}
+.tl.web .tb i{background:repeating-linear-gradient(90deg,#3A4050 0 6px,transparent 6px 10px)}
+.term-body .more{color:#6E7584;padding-left:34px}
+.term-foot{padding:10px 14px 13px;font-size:12px;color:#8D94A3;border-top:1px solid #1F232D;min-height:41px}
+.term-foot b{color:#3DDC84;font-weight:500}
+.caret{display:inline-block;width:7px;height:13px;background:#8D94A3;vertical-align:-2px;margin-left:3px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* logo marquee */
+.strip{display:grid;gap:10px;padding-block:6px 56px;overflow:hidden;
+  mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+.strip .row{display:flex;width:max-content;animation:marq var(--dur,70s) linear infinite}
+.strip .row.rev{animation-direction:reverse}
+.strip:hover .row,.strip:focus-within .row{animation-play-state:paused}
+.strip .grp{display:flex;gap:10px;padding-right:10px}
+@keyframes marq{to{transform:translateX(-50%)}}
+.chip{font:inherit;font-size:13.5px;display:inline-flex;align-items:center;gap:9px;padding:6px 14px 6px 6px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;white-space:nowrap;
+  transition:transform .2s cubic-bezier(.2,.8,.2,1),border-color .2s,box-shadow .2s}
+.chip:hover{transform:translateY(-3px);border-color:var(--accent);box-shadow:0 8px 22px var(--glow)}
+.chip .mark.sm{width:28px;height:28px;border-radius:999px}
+
+/* presets with logo stacks */
+.preset{padding:6px 14px 6px 7px}
+.preset .stack{display:inline-flex}
+.preset .stack .mark{width:24px;height:24px;border-radius:7px;margin-left:-9px;box-shadow:0 0 0 2px var(--bg);transition:margin .25s cubic-bezier(.2,.8,.2,1),transform .25s}
+.preset .stack .mark:first-child{margin-left:0}
+.preset .stack .mark svg{width:13px;height:13px}.preset .stack .mark svg.line{width:16px;height:16px}.preset .stack .mark img{width:15px;height:15px}
+.preset:hover{border-color:var(--accent);transform:translateY(-1px)}
+.preset:hover .stack .mark{margin-left:-2px}
+.preset:hover .stack .mark:first-child{margin-left:0}
+.preset.done{border-color:color-mix(in srgb,var(--accent) 60%,var(--line));background:color-mix(in srgb,var(--accent) 9%,var(--bg))}
+.preset.done small{color:var(--accent)}
+
+/* shelves */
+.shelf-head .idx{font-family:var(--f-mono);font-size:12px;color:var(--accent);align-self:center;border:1px solid color-mix(in srgb,var(--accent) 40%,var(--line));border-radius:6px;padding:1px 6px}
+.shelf-head .got{font-family:var(--f-mono);font-size:11.5px;color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent);border-radius:999px;padding:2px 9px;align-self:center}
+.shelf-head .got:empty{display:none}
+.card.on{border-color:color-mix(in srgb,var(--accent) 65%,var(--line));box-shadow:0 0 0 1px color-mix(in srgb,var(--accent) 35%,transparent),0 10px 30px -12px var(--glow)}
+.card.on .add{background:var(--accent);border-color:transparent;color:var(--accent-ink)}
+.tag.kit{display:none;background:var(--accent);color:var(--accent-ink)}
+.card.on .tag.kit{display:inline-block;animation:pop .25s ease-out}
+.dl svg{transition:transform .2s}
+.dl:hover svg{transform:translateY(2px)}
+.card.ping{animation:ping 1.6s ease-out}
+@keyframes ping{0%,45%{box-shadow:0 0 0 3px var(--accent),0 0 46px var(--glow)}}
+.count-n{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+
+/* scroll reveal (only when JS runs, and never for reduced motion) */
+.js .rv{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.8,.2,1)}
+.js .rv.in{opacity:1;transform:none}
+.js .shelf:not(.in) .card{opacity:0}
+.shelf.in .card{animation:rise .6s cubic-bezier(.2,.8,.2,1) backwards;animation-delay:calc(var(--i,0) * 45ms)}
+.shelf.now .card{animation:none}
+@keyframes rise{from{opacity:0;transform:translateY(18px) scale(.98)}}
+
+/* how it works: a progress track that fills in */
+.how{gap:20px}
+.how div{border-top:0;padding-top:16px;position:relative}
+.how div::before,.how div::after{content:"";position:absolute;left:0;right:0;top:0;height:3px;border-radius:9px;background:var(--line)}
+.how div::after{background:var(--accent);transform-origin:0 50%;transform:scaleX(0);transition:transform .8s cubic-bezier(.6,0,.2,1)}
+.how.in div::after{transform:scaleX(1)}
+.how.in div:nth-child(2)::after{transition-delay:.45s}.how.in div:nth-child(3)::after{transition-delay:.9s}
+.how b{display:inline-block;margin-top:6px;color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 40%,var(--line));border-radius:6px;padding:1px 7px;background:var(--surface)}
+.vm div,.game{transition:transform .25s cubic-bezier(.2,.8,.2,1),border-color .2s}
+.vm div:hover,.game:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--ink) 22%,var(--line))}
+.principles li{border-top-color:var(--accent)}
+
+/* click speed pad */
+.pad[data-s="run"]{background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 30%,var(--sunk)) var(--p,0%),var(--sunk) var(--p,0%))}
+.pad[data-s="run"] .big-t{color:var(--accent)}
+.target{background:radial-gradient(circle,var(--accent) 0 22%,var(--surface) 23% 45%,var(--accent) 46% 62%,var(--surface) 63%)}
+
+/* faq opens smoothly where the browser supports it */
+.faq details::details-content{block-size:0;overflow:hidden;transition:block-size .3s ease,content-visibility .3s allow-discrete}
+.faq details[open]::details-content{block-size:auto}
+@supports (interpolate-size:allow-keywords){:root{interpolate-size:allow-keywords}}
+.faq summary:hover{color:var(--accent)}
+
+/* the big CTA gets a slowly turning RGB rim */
+@property --a{syntax:'<angle>';inherits:false;initial-value:0deg}
+.everything{border:2px solid transparent;
+  background:linear-gradient(var(--surface),var(--surface)) padding-box,
+    conic-gradient(from var(--a),hsl(var(--h) 90% 60%),hsl(calc(var(--h) + 120) 90% 60%),hsl(calc(var(--h) + 240) 90% 60%),hsl(var(--h) 90% 60%)) border-box;
+  animation:rim 8s linear infinite}
+@keyframes rim{to{--a:360deg}}
+.tray .count b{display:inline-block}
+.tray .count b.tick{animation:tick .35s cubic-bezier(.2,.8,.2,1)}
+@keyframes tick{from{transform:translateY(-70%);opacity:0}}
+@media (max-width:560px){
+  .tl{grid-template-columns:auto minmax(0,1fr) 46px 76px;gap:8px}
+  .term-body{min-height:0}
+  .strip{padding-bottom:40px}
+}
+
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important}html{scroll-behavior:auto}.strip{overflow-x:auto;mask-image:none;-webkit-mask-image:none}.js .rv,.js .shelf:not(.in) .card{opacity:1;transform:none}}
 </style>
 
 <canvas id="fx" aria-hidden="true"></canvas>
@@ -285,14 +421,26 @@ pre.cmd{margin:0;background:var(--sunk);border:1px solid var(--line);border-radi
     <div class="catwrap"><button class="arrow" id="catL" aria-label="Scroll categories left"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg></button><nav class="cats" id="cats" aria-label="Categories"></nav><button class="arrow" id="catR" aria-label="Scroll categories right"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg></button></div>
     <button class="theme" id="theme" aria-label="Switch light or dark theme"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 2a6 6 0 0 1 0 12z" fill="currentColor"/></svg></button>
   </div>
+  <i class="prog" id="prog" aria-hidden="true"></i>
 </header>
 
 <main id="top">
   <section class="wrap hero">
-    <div class="keys" id="keys" role="group" aria-label="GamerKit keycaps" title="Press a key to change the colour"></div>
-    <h1 class="lede">Every app a new gaming PC needs, in one place.</h1>
-    <p class="sub">74 launchers, drivers and tools, straight from their official sites.</p>
+    <div class="hero-l">
+      <span class="eyebrow">New PC setup · Windows 10 / 11</span>
+      <div class="keys" id="keys" role="group" aria-label="GamerKit keycaps" title="Press a key to change the colour"></div>
+      <h1 class="lede">Every app a new gaming PC needs, in one place.</h1>
+      <p class="sub">74 launchers, drivers and tools, straight from their official sites. Pick what you need, then install the lot with one file.</p>
+      <div class="cta"><a class="big" href="#main">Build your kit <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3v10M4 9l4 4 4-4"/></svg></a><a class="link" href="#everything">or grab everything <span aria-hidden="true">→</span></a></div>
+      <div class="meta" id="meta"></div>
+    </div>
+    <div class="term" id="term" role="region" aria-label="Installer preview">
+      <div class="term-bar"><i></i><i></i><i></i><span class="mono" id="tlabel">GamerKit Installer.bat</span><button class="run mono" id="run">▶ Run preview</button></div>
+      <div class="term-body mono" id="tbody"></div>
+      <div class="term-foot mono" id="tfoot" aria-live="polite"></div>
+    </div>
   </section>
+  <div class="strip" id="strip" role="region" aria-label="Jump to a tool"></div>
 
   <section class="wrap" id="main">
     <div class="bar">
@@ -305,19 +453,20 @@ pre.cmd{margin:0;background:var(--sunk);border:1px solid var(--line);border-radi
         <label class="search"><span class="skip">Search tools</span><input id="q" type="search" placeholder="Search Steam, drivers, RGB, benchmark…" autocomplete="off"><kbd>/</kbd></label>
         <label class="toggle"><input type="checkbox" id="free"> Free only</label>
         <label class="toggle"><input type="checkbox" id="wg"> Installs with winget</label>
+        <span class="count-n" id="qcount" aria-live="polite"></span>
       </div>
     </div>
 
     <div id="shelves"></div>
 
-    <div class="how" aria-label="How it works">
+    <div class="how rv" aria-label="How it works">
       <div><b>step 1</b><h3>Build your kit</h3><p>Tap + on any tool or start from a preset. Your kit is saved in this browser.</p></div>
       <div><b>step 2</b><h3>Download your kit</h3><p>Open your kit and download it as a zip, or use Download everything at the bottom. One installer is inside.</p></div>
       <div><b>step 3</b><h3>Run it and walk away</h3><p>Windows asks for permission once. Then every app installs silently at its latest version, already up-to-date apps are skipped, and you never click Next. Run it again later to update everything.</p></div>
     </div>
 
-    <section class="play" id="play" aria-labelledby="play-h">
-      <div class="sec-head"><h2 id="play-h">Warm up while it installs</h2><p>Two quick tests to keep your hands busy while the installer runs. Your best scores stay in this browser.</p></div>
+    <section class="play rv" id="play" aria-labelledby="play-h">
+      <div class="sec-head"><h2 id="play-h">Warm up while it installs</h2><p>Three quick tests to keep your hands busy while the installer runs. Your best scores stay in this browser.</p></div>
       <div class="games">
         <div class="game">
           <div class="g-head"><h3>Reaction test</h3><span class="best mono" id="rt-best"></span></div>
@@ -327,10 +476,14 @@ pre.cmd{margin:0;background:var(--sunk);border:1px solid var(--line);border-radi
           <div class="g-head"><h3>Aim trainer</h3><span class="best mono" id="aim-best"></span></div>
           <div class="arena" id="arena"><button class="start" id="aim-start">Start · 15 targets</button><span class="aim-hud mono" id="aim-hud"></span></div>
         </div>
+        <div class="game">
+          <div class="g-head"><h3>Click speed</h3><span class="best mono" id="cps-best"></span></div>
+          <button class="pad" id="cps" data-s="idle"><span class="big-t" id="cps-t">Click to start</span><span class="small-t" id="cps-s">Click as many times as you can in 5 seconds.</span></button>
+        </div>
       </div>
     </section>
 
-    <section class="about" id="about" aria-labelledby="about-h">
+    <section class="about rv" id="about" aria-labelledby="about-h">
       <div class="sec-head"><h2 id="about-h">Why GamerKit exists</h2>
         <p>Every new build ends the same way. The parts are in, Windows boots, and then you spend an evening searching for Steam, Discord, the right GPU driver and Afterburner, one tab at a time, avoiding fake download sites along the way. GamerKit turns that evening into a few minutes.</p></div>
       <div class="vm">
@@ -344,7 +497,7 @@ pre.cmd{margin:0;background:var(--sunk);border:1px solid var(--line);border-radi
       </ul>
     </section>
 
-    <section class="faq" id="faq" aria-labelledby="faq-h">
+    <section class="faq rv" id="faq" aria-labelledby="faq-h">
       <div class="sec-head"><h2 id="faq-h">Questions</h2></div>
       <details><summary>What should I install first on a new gaming PC?</summary><p>Start with your graphics driver (the NVIDIA App, AMD Software: Adrenalin or Intel's Driver &amp; Support Assistant), then your game launchers such as Steam and the Epic Games Launcher, then Discord and a monitoring tool like HWiNFO or MSI Afterburner.</p></details>
       <details><summary>Is it safe to download from GamerKit?</summary><p>GamerKit hosts no files. Each Download button opens the developer's official site, and the installer script uses winget, the package manager built into Windows 10 and 11.</p></details>
@@ -353,7 +506,7 @@ pre.cmd{margin:0;background:var(--sunk);border:1px solid var(--line);border-radi
       <details><summary>Will the apps stay up to date?</summary><p>Most update themselves. You can also run "GamerKit Installer.bat" again at any time. It skips apps that are already up to date and updates the rest.</p></details>
     </section>
 
-    <div class="everything">
+    <div class="everything rv" id="everything">
       <div><h2>Want all of it?</h2><p class="hint" id="allnote"></p></div>
       <button class="big" id="all"></button>
     </div>
@@ -568,35 +721,38 @@ document.addEventListener('keydown', e => {
 // nav + meta
 $('#cats').innerHTML = CATS.map(c => '<a href="#'+c.id+'"><span class="roll"><span>'+c.name+'</span><span>'+c.name+'</span></span><sup>'+c.tools.length+'</sup></a>').join('');
 const wgCount = ALL.filter(t=>t.wg).length;
-const _meta = '<span><b>'+ALL.length+'</b> tools</span><span><b>'+CATS.length+'</b> categories</span><span><b>'+wgCount+'</b> install with winget</span><span><b>0</b> files rehosted</span>';
-$('#presets').innerHTML = PRESETS.map((p,i)=>'<button class="preset" data-p="'+i+'">+ '+p.name+' <small>'+p.ids.length+'</small></button>').join('');
+$('#meta').innerHTML = [[ALL.length,'tools'],[CATS.length,'categories'],[wgCount,'install with winget'],[0,'files rehosted']].map(([n,l])=>'<span><b data-n="'+n+'">'+n+'</b> '+l+'</span>').join('');
+if (!RM) document.querySelectorAll('#meta b').forEach(b => { const n=+b.dataset.n, t0=performance.now(); if(!n) return; b.textContent='0';
+  const step = t => { const k=Math.min(1,(t-t0)/1100), e=1-Math.pow(1-k,3); b.textContent=Math.round(n*e); if(k<1) requestAnimationFrame(step); }; requestAnimationFrame(step); });
+$('#presets').innerHTML = PRESETS.map((p,i)=>'<button class="preset" data-p="'+i+'"><span class="stack">'+p.ids.filter(id=>LOGOS[id]).slice(0,4).map(id=>logo(T[id])).join('')+'</span>'+p.name+' <small>'+p.ids.length+'</small></button>').join('');
 $('#presets').addEventListener('click', e => { const b=e.target.closest('.preset'); if(!b) return; PRESETS[b.dataset.p].ids.forEach(i=>kit.add(i)); sync(true); burst(b, PRESETS[b.dataset.p].ids.length); });
 
 // shelves
-function card(t){
-  return '<article class="card'+(kit.has(t.id)?' on':'')+'" data-id="'+t.id+'">'+
+function card(t, i){
+  return '<article class="card'+(kit.has(t.id)?' on':'')+'" data-id="'+t.id+'" style="--i:'+((i||0)%8)+'">'+
     '<div class="top">'+logo(t)+'<div><h3>'+esc(t.name)+'</h3><span class="src">'+esc(host(t.url))+' · '+esc(t.vendor)+'</span></div></div>'+
     '<p class="desc">'+esc(t.desc)+'</p>'+
-    '<div style="display:grid;gap:10px"><div class="tags"><span class="tag">'+(t.free?'free':'paid')+'</span>'+(t.wg?'<span class="tag w">winget</span>':'<span class="tag">manual install</span>')+'</div>'+
+    '<div style="display:grid;gap:10px"><div class="tags"><span class="tag">'+(t.free?'free':'paid')+'</span>'+(t.wg?'<span class="tag w">winget</span>':'<span class="tag">manual install</span>')+'<span class="tag kit">in your kit</span></div>'+
     '<div class="actions"><a class="dl" href="'+t.url+'" target="_blank" rel="noopener noreferrer">'+DL+' Download</a>'+
     '<button class="add" aria-pressed="'+kit.has(t.id)+'" aria-label="'+(kit.has(t.id)?'Remove ':'Add ')+esc(t.name)+(kit.has(t.id)?' from':' to')+' your kit">'+PLUS+'</button></div></div></article>';
 }
-function render(){
+function render(instant){
   const q = $('#q').value.trim().toLowerCase(), fo = $('#free').checked, wo = $('#wg').checked;
   let shown = 0;
   $('#shelves').innerHTML = CATS.map(c => {
     const list = c.tools.map(t=>T[t[0]]).filter(t => (!q || (t.name+' '+t.vendor+' '+t.desc+' '+c.name).toLowerCase().includes(q)) && (!fo||t.free) && (!wo||t.wg));
     shown += list.length;
     if (!list.length) return '';
-    return '<section class="shelf" id="'+c.id+'"><div class="shelf-head"><h2>'+c.name+'</h2><span class="n">'+list.length+(list.length===c.tools.length?'':' of '+c.tools.length)+'</span><button class="addall" data-cat="'+c.id+'">Add all to kit</button></div><p>'+c.blurb+'</p><div class="grid">'+list.map(card).join('')+'</div></section>';
+    return '<section class="shelf'+(instant?' in now':'')+'" id="'+c.id+'"><div class="shelf-head"><span class="idx">'+String(CATS.indexOf(c)+1).padStart(2,'0')+'</span><h2>'+c.name+'</h2><span class="n">'+list.length+(list.length===c.tools.length?'':' of '+c.tools.length)+'</span><span class="got" data-got="'+c.id+'"></span><button class="addall" data-cat="'+c.id+'">Add all to kit</button></div><p>'+c.blurb+'</p><div class="grid">'+list.map(card).join('')+'</div></section>';
   }).join('') || '<p class="empty">No tools match “'+esc(q)+'”. Try a vendor name or a word like “driver”.</p>';
+  $('#qcount').textContent = (q||fo||wo) ? shown+' of '+ALL.length+' tools' : '';
 }
 $('#shelves').addEventListener('click', e => {
   const all = e.target.closest('.addall');
-  if (all) { const cs=e.currentTarget.querySelectorAll('#'+all.dataset.cat+' [data-id]'); cs.forEach(c=>kit.add(c.dataset.id)); sync(true); return; }
+  if (all) { const cs=e.currentTarget.querySelectorAll('#'+all.dataset.cat+' [data-id]'); cs.forEach(c=>kit.add(c.dataset.id)); sync(true); burst(all); return; }
   const add = e.target.closest('.add'); if (!add) return;
   const id = add.closest('.card').dataset.id;
-  kit.has(id) ? kit.delete(id) : kit.add(id); sync(kit.has(id)); if (kit.has(id)) burst(add, 1);
+  kit.has(id) ? kit.delete(id) : kit.add(id); sync(kit.has(id)); if (kit.has(id)) burst(add);
 });
 let tilted = null;
 const untilt = c => { if (c) { c.style.setProperty('--rx','0deg'); c.style.setProperty('--ry','0deg'); } };
@@ -608,9 +764,10 @@ $('#shelves').addEventListener('pointermove', e => {
   c.style.setProperty('--mx', (e.clientX-r.left)+'px'); c.style.setProperty('--my', (e.clientY-r.top)+'px');
 });
 $('#shelves').addEventListener('pointerleave', () => { untilt(tilted); tilted = null; });
-['input','change'].forEach(ev => ['#q','#free','#wg'].forEach(s => $(s).addEventListener(ev, () => { render(); watchShelves(); })));
+['input','change'].forEach(ev => ['#q','#free','#wg'].forEach(s => $(s).addEventListener(ev, () => { render(true); sync(false); watchShelves(); })));
 
 // kit tray + drawer
+let fullKit = null;
 function sync(bump){
   save();
   document.querySelectorAll('.card').forEach(c => {
@@ -620,8 +777,14 @@ function sync(bump){
   });
   const n = kit.size, tray = $('#tray');
   tray.classList.toggle('hide', n===0);
-  $('#tcount').innerHTML = '<span class="kl">Your kit · </span><b>'+n+'</b> tool'+(n===1?'':'s');
+  const prevN = +(($('#tcount b')||{}).textContent||0);
+  $('#tcount').innerHTML = '<span class="kl">Your kit · </span><b'+(n!==prevN&&!RM?' class="tick"':'')+'>'+n+'</b> tool'+(n===1?'':'s');
   const covered = new Set([...kit].map(i=>T[i].cat));
+  document.querySelectorAll('[data-got]').forEach(g => { const k=[...kit].filter(i=>T[i].cat===g.dataset.got).length; g.textContent = k ? k+' in your kit' : ''; });
+  document.querySelectorAll('.preset').forEach(b => b.classList.toggle('done', PRESETS[b.dataset.p].ids.every(i=>kit.has(i))));
+  if (covered.size===CATS.length && !fullKit) { fullKit = true; if (bump) toast('Achievement unlocked: Full loadout, one tool from every category'); }
+  if (covered.size<CATS.length) fullKit = false;
+  termRender();
   $('#meter').innerHTML = CATS.map(c=>'<i class="'+(covered.has(c.id)?'f':'')+'" title="'+c.name+'"></i>').join('');
   if (bump && n) { tray.classList.remove('bump'); void tray.offsetWidth; tray.classList.add('bump'); }
   if (!$('#drawer').hidden) fillDrawer();
@@ -685,20 +848,30 @@ new MutationObserver(kick).observe(root, {attributes:true, attributeFilter:['dat
 matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', kick);
 size();
 
-function burst(){}
+// one small dot flies from the button into the kit tray
+function burst(el){
+  if (RM || !el || !el.animate) return;
+  const a = el.getBoundingClientRect(), b = $('#open').getBoundingClientRect(), d = document.createElement('i');
+  const x0 = a.left+a.width/2, y0 = a.top+a.height/2, x1 = b.left+b.width/2, y1 = Math.min(b.top+b.height/2, innerHeight-30);
+  d.className = 'fly'; document.body.appendChild(d);
+  d.animate([{transform:'translate('+x0+'px,'+y0+'px) scale(1)'},{transform:'translate('+((x0+x1)/2)+'px,'+(Math.min(y0,y1)-90)+'px) scale(1.25)',offset:.45},{transform:'translate('+x1+'px,'+y1+'px) scale(.4)',opacity:.4}],
+    {duration:620,easing:'cubic-bezier(.45,0,.4,1)'}).onfinish = () => d.remove();
+}
 
 // nav follows the shelf you're reading
 let io;
 function watchShelves(){
   if (io) io.disconnect();
-  if (!('IntersectionObserver' in window)) return;
+  if (!('IntersectionObserver' in window)) { reveal(); return; }
   io = new IntersectionObserver(es => es.forEach(en => {
     if (!en.isIntersecting) return;
     document.querySelectorAll('#cats a').forEach(a => {
       const on = a.getAttribute('href') === '#'+en.target.id; a.classList.toggle('cur', on);
+      if (on) { const c = $('#cats'); c.scrollTo({left: a.offsetLeft - c.clientWidth/2 + a.offsetWidth/2}); }
     });
   }), {rootMargin:'-35% 0px -60% 0px'});
   document.querySelectorAll('.shelf').forEach(s => io.observe(s));
+  reveal();
 }
 
 // one-button zip: an installer script (winget always fetches each publisher's latest release) + shortcuts to official pages
@@ -858,6 +1031,101 @@ addEventListener('pointermove', e => { if (dragX === null) return; const dx = e.
 addEventListener('pointerup', () => { dragX = null; setTimeout(()=>cats.classList.remove('drag'), 0); });
 cats.addEventListener('click', e => { if (moved) { e.preventDefault(); moved = false; } }, true);
 catEdges();
+
+// ---- v3 interactive layer ----
+// scroll progress line under the nav
+const prog = $('#prog');
+const progUp = () => { const m = document.documentElement.scrollHeight - innerHeight; prog.style.setProperty('--p', m > 0 ? Math.min(1, scrollY / m) : 0); };
+addEventListener('scroll', progUp, {passive:true}); addEventListener('resize', progUp); progUp();
+
+// reveal sections and shelves as they scroll into view
+let rio = null;
+function reveal(){
+  const els = document.querySelectorAll('.rv:not(.in), .shelf:not(.in)');
+  if (RM || !('IntersectionObserver' in window)) { els.forEach(e => e.classList.add('in')); return; }
+  if (!rio) rio = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting) { en.target.classList.add('in'); rio.unobserve(en.target); } }), {rootMargin:'0px 0px -8% 0px'});
+  els.forEach(e => rio.observe(e));
+}
+
+// installer preview: shows what GamerKit Installer.bat does with your kit
+const SAMPLE = ['steam','discord','nvapp','afterburner','obs','spotify'].filter(i => T[i]);
+let running = false;
+function termList(){ const k = [...kit].map(i => T[i]); return k.length ? k : SAMPLE.map(i => T[i]); }
+function termRender(){
+  if (running) return;
+  const list = termList(), show = list.slice(0, 6), w = list.filter(t => t.wg).length;
+  $('#tlabel').textContent = kit.size ? 'Your kit · '+list.length+' app'+(list.length===1?'':'s') : 'GamerKit Installer.bat';
+  $('#tbody').innerHTML = '<div class="cmdline">C:\\GamerKit&gt; <b>"GamerKit Installer.bat"</b></div>' +
+    show.map(t => '<div class="tl" data-id="'+t.id+'">'+logo(t,'sm')+'<span class="tn">'+esc(t.name)+'</span><span class="tb"><i></i></span><span class="ts">'+(t.wg?'queued':'official site')+'</span></div>').join('') +
+    (list.length > 6 ? '<div class="more">+ '+(list.length-6)+' more</div>' : '');
+  $('#tfoot').innerHTML = w ? 'Ready: '+w+' silent install'+(w===1?'':'s')+', one permission prompt.<span class="caret"></span>' : 'Add a winget tool to see the installer run.<span class="caret"></span>';
+}
+const wait = ms => new Promise(r => setTimeout(r, ms));
+async function termRun(){
+  if (running) return;
+  termRender(); running = true; $('#run').disabled = true;
+  const rows = [...document.querySelectorAll('#tbody .tl')];
+  let ok = 0, web = 0;
+  for (const r of rows) {
+    const t = T[r.dataset.id], ts = r.querySelector('.ts');
+    if (!t.wg) { r.classList.add('web'); ts.textContent = 'opens site ↗'; web++; await wait(RM ? 0 : 260); continue; }
+    const d = RM ? 0 : 500 + Math.random()*700;
+    r.classList.add('busy'); ts.textContent = 'installing'; r.querySelector('.tb i').style.setProperty('--d', d+'ms');
+    requestAnimationFrame(() => r.querySelector('.tb i').style.width = '100%');
+    await wait(d + 40);
+    r.classList.remove('busy'); r.classList.add('ok'); ts.textContent = 'installed ✓'; ok++;
+  }
+  const extra = termList().length - rows.length;
+  $('#tfoot').innerHTML = '<b>Done.</b> '+ok+' installed'+(web ? ', '+web+' via official site'+(web===1?'':'s') : '')+(extra>0 ? ', '+extra+' more in the full run' : '')+'. Ready to play.<span class="caret"></span>';
+  running = false; $('#run').disabled = false; $('#run').textContent = '↻ Run again';
+}
+$('#run').onclick = termRun;
+if ('IntersectionObserver' in window && !RM) {
+  const tio = new IntersectionObserver(es => { if (es[0].isIntersecting) { tio.disconnect(); setTimeout(termRun, 900); } }, {threshold:.5});
+  tio.observe($('#term'));
+}
+
+// logo marquee: click a logo to jump to its card
+const withLogo = ALL.filter(t => LOGOS[t.id]), half = Math.ceil(withLogo.length / 2);
+const chip = t => '<button class="chip" data-go="'+t.id+'">'+logo(t,'sm')+'<span>'+esc(t.name)+'</span></button>';
+$('#strip').innerHTML = [withLogo.slice(0, half), withLogo.slice(half)].map((r, i) =>
+  '<div class="row'+(i?' rev':'')+'" style="--dur:'+(r.length*3.2)+'s"><div class="grp">'+r.map(chip).join('')+'</div><div class="grp" aria-hidden="true" inert>'+r.map(chip).join('')+'</div></div>').join('');
+$('#strip').addEventListener('click', e => {
+  const b = e.target.closest('[data-go]'); if (!b) return;
+  let c = document.querySelector('.card[data-id="'+b.dataset.go+'"]');
+  if (!c) { $('#q').value = ''; $('#free').checked = $('#wg').checked = false; render(true); sync(false); watchShelves(); c = document.querySelector('.card[data-id="'+b.dataset.go+'"]'); }
+  c.closest('.shelf').classList.add('in');
+  c.scrollIntoView({behavior: RM ? 'auto' : 'smooth', block: 'center'});
+  c.classList.remove('ping'); void c.offsetWidth; c.classList.add('ping');
+  setTimeout(() => c.querySelector('.add').focus({preventScroll:true}), RM ? 0 : 700);
+});
+
+// click speed test
+const cps = $('#cps'), cpsT = $('#cps-t'), cpsS = $('#cps-s'); let cpsN = 0, cpsStart = 0, cpsRaf = 0, cpsLock = 0;
+const cpsBest = () => { const b = store.get('gk-cps'); $('#cps-best').textContent = b ? 'Best '+b.toFixed(1)+' CPS' : ''; };
+function cpsTick(){
+  const el = (performance.now() - cpsStart) / 1000;
+  if (el >= 5) return cpsEnd();
+  cps.style.setProperty('--p', (el/5*100)+'%'); cpsS.textContent = (5-el).toFixed(1)+' s left';
+  cpsRaf = requestAnimationFrame(cpsTick);
+}
+function cpsEnd(){
+  cancelAnimationFrame(cpsRaf);
+  const v = cpsN / 5, b = store.get('gk-cps');
+  if (!b || v > b) { store.set('gk-cps', v); if (b) toast('New best: '+v.toFixed(1)+' clicks a second'); }
+  cps.dataset.s = 'done'; cpsT.textContent = v.toFixed(1)+' CPS';
+  cpsS.textContent = (v>=10?'Butterfly-click territory.':v>=7?'Fast fingers.':v>=5?'Respectable.':'Keep warming up.')+' Click to go again.';
+  cpsBest(); cpsLock = performance.now() + 700;
+}
+function cpsHit(){
+  const s = cps.dataset.s;
+  if (s === 'run') { cpsN++; cpsT.textContent = cpsN; return; }
+  if (performance.now() < cpsLock) return;
+  cps.dataset.s = 'run'; cpsN = 1; cpsT.textContent = '1'; cpsStart = performance.now(); cpsTick();
+}
+cps.addEventListener('pointerdown', e => { e.preventDefault(); cpsHit(); });
+cps.addEventListener('keydown', e => { if ((e.key===' '||e.key==='Enter') && !e.repeat) { e.preventDefault(); cpsHit(); } });
+cpsBest();
 
 render(); sync(false); watchShelves();
 // opening moment: the keycaps light up left to right once
